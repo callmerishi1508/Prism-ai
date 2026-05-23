@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle } from 'lucide-react';
-import { IssueCard, Issue } from './IssueCard';
-import { AnalysisResult } from '@/lib/utils';
+import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper } from 'lucide-react';
+import { IssueCard } from './IssueCard';
+import { AnalysisResult, Issue } from '@/lib/schema';
 
 interface InsightsPanelProps {
   analysis: AnalysisResult | null;
@@ -82,7 +82,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
 
   const { issues, health_score, merge_recommendation } = analysis;
 
-  const severityCount = issues.reduce((acc, issue) => {
+  const severityCount = issues.reduce((acc: Record<string, number>, issue: Issue) => {
     acc[issue.severity] = (acc[issue.severity] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
@@ -194,14 +194,37 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
               Reviewed by {activePersona.name}
             </span>
           )}
+          <div className="flex gap-2 ml-auto">
+            <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/5 transition-all text-gray-400 hover:text-white" title="Copy Review Summary">
+              <Copy size={16} />
+            </button>
+            <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/5 transition-all text-gray-400 hover:text-white" title="Export as Markdown">
+              <FileText size={16} />
+            </button>
+            <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/5 transition-all text-gray-400 hover:text-white" title="Download JSON">
+              <Download size={16} />
+            </button>
+          </div>
         </motion.div>
-        <div className="grid grid-cols-1 gap-5">
-          {issues.map((issue, index) => (
+        
+        {issues.length === 0 ? (
+          <motion.div variants={itemVariants} className="flex flex-col items-center justify-center p-10 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-xl relative overflow-hidden shadow-[0_0_40px_rgba(16,185,129,0.1)]">
+            <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent pointer-events-none" />
+            <div className="p-4 rounded-full bg-emerald-500/20 mb-4 animate-bounce">
+              <PartyPopper className="w-10 h-10 text-emerald-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-emerald-400 mb-2">Production Ready!</h3>
+            <p className="text-gray-400 text-sm text-center max-w-md">No issues detected by the AI. The architecture is sound, secure, and performant. Safe to merge into main.</p>
+          </motion.div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5">
+          {issues.map((issue: Issue, index: number) => (
             <motion.div key={index} variants={itemVariants}>
               <IssueCard issue={issue} />
             </motion.div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
 
     </motion.div>

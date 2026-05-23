@@ -9,7 +9,8 @@ import ScanningOverlay from '@/components/animations/ScanningOverlay';
 import { useAIRequest } from '@/hooks/useAIRequest';
 import { PERSONAS, PersonaId } from '@/lib/personas';
 import { DEMO_EXAMPLES } from '@/lib/demoExamples';
-import { AnalysisResult } from '@/lib/utils';
+import { AnalysisResult } from '@/lib/schema';
+import { DebugPanel } from '@/components/dashboard/DebugPanel';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
@@ -33,10 +34,13 @@ export default function DashboardPage() {
   const [persona, setPersona] = useState<PersonaId>('cto');
   const [isDemoMode, setIsDemoMode] = useState(true);
 
+  const [latencyMs, setLatencyMs] = useState<number | undefined>();
   const { data: analysis, isLoading, execute, error } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
-  const handleAnalyze = () => {
-    execute({ code, persona, isDemoMode });
+  const handleAnalyze = async () => {
+    const start = Date.now();
+    await execute({ code, persona, isDemoMode });
+    setLatencyMs(Date.now() - start);
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -53,6 +57,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-x-hidden font-sans">
       <ScanningOverlay visible={isLoading} />
+      <DebugPanel analysis={analysis} latencyMs={latencyMs} />
       
       {/* Dynamic Background ambient glow based on persona */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-colors duration-1000">

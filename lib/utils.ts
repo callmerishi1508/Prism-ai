@@ -10,19 +10,7 @@ export class ResponseError extends Error {
   }
 }
 
-export interface AnalysisResult {
-  issues: Array<{
-    title: string;
-    severity: 'Critical' | 'High' | 'Medium' | 'Low';
-    line: number;
-    explanation: string;
-    suggested_fix?: string;
-  }>;
-  health_score: number;
-  merge_recommendation: 'Safe to Merge' | 'Needs Changes' | 'High Risk';
-  persona_selection: string;
-  mode: 'analysis' | 'fix' | 'tests' | 'risk';
-}
+import { AnalysisResult } from './schema';
 
 export type PersonaType = 'Startup CTO' | 'Security Expert' | 'Performance Engineer' | 'FAANG Reviewer';
 export type AnalysisMode = 'analysis' | 'fix' | 'tests' | 'risk';

@@ -2,16 +2,11 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { AlertCircle, Terminal, CheckCircle2, Info } from 'lucide-react';
+import { AlertCircle, Terminal, CheckCircle2, Info, Copy, Check } from 'lucide-react';
+import DOMPurify from 'dompurify';
+import { marked } from 'marked';
 
-export interface Issue {
-  title: string;
-  severity: 'Critical' | 'High' | 'Medium' | 'Low';
-  line: number;
-  explanation: string;
-  suggested_fix?: string;
-  confidence?: number;
-}
+import { Issue } from '@/lib/schema';
 
 interface IssueCardProps {
   issue: Issue;
@@ -25,8 +20,22 @@ const severityConfig = {
 };
 
 export function IssueCard({ issue }: IssueCardProps) {
+  const [copied, setCopied] = React.useState(false);
   const config = severityConfig[issue.severity] || severityConfig.Medium;
   const Icon = config.icon;
+
+  const handleCopy = () => {
+    if (issue.suggested_fix) {
+      navigator.clipboard.writeText(issue.suggested_fix);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
+
+  const getSanitizedHtml = (markdown: string) => {
+    const html = marked.parse(markdown) as string;
+    return { __html: DOMPurify.sanitize(html) };
+  };
 
   return (
     <motion.div
@@ -61,15 +70,25 @@ export function IssueCard({ issue }: IssueCardProps) {
         {issue.title}
       </h3>
       
-      <p className="relative z-10 text-sm text-gray-400 leading-relaxed mb-4">
-        {issue.explanation}
-      </p>
+      <div 
+        className="relative z-10 text-sm text-gray-400 leading-relaxed mb-4 prose prose-invert max-w-none prose-p:my-1 prose-pre:bg-white/5 prose-pre:border prose-pre:border-white/10"
+        dangerouslySetInnerHTML={getSanitizedHtml(issue.explanation)}
+      />
 
       <div className="relative z-10 mt-auto pt-3 border-t border-white/10">
         <div className="flex items-start gap-2">
           <Terminal size={14} className="text-gray-500 mt-1 shrink-0" />
           <div className="w-full">
-            <span className="text-xs font-medium text-gray-500 uppercase tracking-wider block mb-1">Suggested Fix</span>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wider block">Suggested Fix</span>
+              <button 
+                onClick={handleCopy}
+                className="flex items-center gap-1 text-xs text-gray-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded border border-white/5"
+              >
+                {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
+                {copied ? 'Copied' : 'Copy Fix'}
+              </button>
+            </div>
             <code className="text-sm font-mono text-emerald-400/90 whitespace-pre-wrap break-all block bg-black/20 p-2.5 rounded border border-emerald-500/10">
               {issue.suggested_fix}
             </code>

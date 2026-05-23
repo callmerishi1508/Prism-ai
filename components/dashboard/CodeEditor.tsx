@@ -14,7 +14,36 @@ interface CodeEditorProps {
 const SUPPORTED_LANGUAGES = [
   { id: 'javascript', name: 'JavaScript' },
   { id: 'typescript', name: 'TypeScript' },
-  { id: 'python', name: 'Python' }
+  { id: 'python', name: 'Python' },
+  { id: 'java', name: 'Java' },
+  { id: 'c', name: 'C' },
+  { id: 'cpp', name: 'C++' },
+  { id: 'csharp', name: 'C#' },
+  { id: 'go', name: 'Go' },
+  { id: 'rust', name: 'Rust' },
+  { id: 'swift', name: 'Swift' },
+  { id: 'kotlin', name: 'Kotlin' },
+  { id: 'php', name: 'PHP' },
+  { id: 'ruby', name: 'Ruby' },
+  { id: 'scala', name: 'Scala' },
+  { id: 'dart', name: 'Dart' },
+  { id: 'r', name: 'R' },
+  { id: 'objective-c', name: 'Objective-C' },
+  { id: 'lua', name: 'Lua' },
+  { id: 'perl', name: 'Perl' },
+  { id: 'sql', name: 'SQL' },
+  { id: 'graphql', name: 'GraphQL' },
+  { id: 'shell', name: 'Bash/Shell' },
+  { id: 'powershell', name: 'PowerShell' },
+  { id: 'html', name: 'HTML' },
+  { id: 'css', name: 'CSS' },
+  { id: 'scss', name: 'SCSS' },
+  { id: 'json', name: 'JSON' },
+  { id: 'yaml', name: 'YAML' },
+  { id: 'xml', name: 'XML' },
+  { id: 'markdown', name: 'Markdown' },
+  { id: 'dockerfile', name: 'Dockerfile' },
+  { id: 'solidity', name: 'Solidity' }
 ];
 
 export function CodeEditor({ code, language, onChange }: CodeEditorProps) {
