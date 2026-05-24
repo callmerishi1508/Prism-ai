@@ -154,6 +154,23 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
         </div>
       )}
       
+      {analysis.promptVersion?.includes('heuristic') && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-start gap-3 p-4 rounded-xl border border-yellow-500/30 bg-yellow-500/10 mb-2 shadow-[0_0_20px_rgba(234,179,8,0.15)] relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-500/10 to-transparent pointer-events-none" />
+          <AlertTriangle className="w-5 h-5 text-yellow-400 mt-0.5 shrink-0 relative z-10" />
+          <div className="relative z-10">
+            <h4 className="text-sm font-semibold text-yellow-400 mb-1 tracking-wide">Offline Heuristic Engine Active</h4>
+            <p className="text-xs text-yellow-200/80 leading-relaxed">
+              The real-time Gemini AI engine is currently at API capacity or unavailable. We have seamlessly failed over to our local AST/Regex heuristic engine. Results may vary and represent a conservative offline scan. For deep AI analysis, please try again shortly.
+            </p>
+          </div>
+        </motion.div>
+      )}
+
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Health Score Ring */}

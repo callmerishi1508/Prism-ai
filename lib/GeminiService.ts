@@ -403,8 +403,7 @@ When encountering what appears to be an "Undefined Variable", explicitly conside
 
       return {
         issues: [
-          { title: 'Heuristic Fallback Engine Activated', severity: 'Low', line: 1, explanation: 'The real-time Gemini AI engine is currently at API capacity (Rate Limit 429). We have seamlessly failed over to our local heuristic engine to keep you moving without interruption.\n\n*Note: This is a lightweight heuristic review. For deep AI analysis, try again in 60 seconds.*', suggested_fix: 'Upgrade API limits or add Redis caching layers for production scale.', confidence: 0.9 },
-          { title: 'Input Validation Recommendation', severity: 'Medium', line: 2, explanation: 'Heuristic scan: Ensure all user inputs and external payloads in this custom code block are explicitly sanitized before processing to prevent injection attacks.', suggested_fix: 'Implement robust validation schemas (e.g., Zod, Pydantic).', confidence: 0.8 }
+          { title: 'Input Validation Recommendation', severity: 'Medium', line: 1, explanation: 'Heuristic scan: Ensure all user inputs and external payloads in this custom code block are explicitly sanitized before processing to prevent injection attacks.', suggested_fix: 'Implement robust validation schemas (e.g., Zod, Pydantic).', confidence: 0.8 }
         ],
         health_score: 75,
         merge_recommendation: 'Manual Review Required',
