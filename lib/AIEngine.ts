@@ -13,13 +13,14 @@ class AIEngine {
     this.gemini = GeminiService;
   }
 
-  async analyzePR(code: string, persona: PersonaId, isDemoMode?: boolean) {
+  async analyzePR(code: string, persona: PersonaId, language?: string, isDemoMode?: boolean) {
     // Initialize Gemini session (mock or real)
     await this.gemini.initializeSession();
 
     // Analyze code with persona context
     const analysis = await this.gemini.analyzeCode(code, {
       persona,
+      language,
       mode: 'analysis',
       isDemoMode
     });

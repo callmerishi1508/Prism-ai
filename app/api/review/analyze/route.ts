@@ -5,7 +5,7 @@ import { PersonaId } from '@/lib/personas';
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, persona, isDemoMode } = await request.json();
+    const { code, language, persona, isDemoMode } = await request.json();
 
     // Validate input
     const validatedCode = validateInput(code);
@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const selectedPersona = validPersonas.includes(persona as PersonaId) ? persona : 'cto';
 
     // Perform analysis
-    const rawAnalysis = await AIEngine.analyzePR(validatedCode, selectedPersona, isDemoMode);
+    const rawAnalysis = await AIEngine.analyzePR(validatedCode, selectedPersona, language, isDemoMode);
 
     if (!rawAnalysis) {
       return NextResponse.json(

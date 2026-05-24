@@ -42,7 +42,7 @@ export default function DashboardPage() {
     
     const start = Date.now();
     try {
-      await execute({ code, persona, isDemoMode });
+      await execute({ code, language, persona, isDemoMode });
     } catch (err) {
       console.error("Analysis execution failed:", err);
     } finally {

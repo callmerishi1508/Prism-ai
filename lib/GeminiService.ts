@@ -73,7 +73,7 @@ class GeminiService {
     };
   }
 
-  async analyzeCode(code: string, context: { persona: PersonaId, mode: string, isDemoMode?: boolean }) {
+  async analyzeCode(code: string, context: { persona: PersonaId, mode: string, language?: string, isDemoMode?: boolean }) {
     const isFixMode = context.mode === 'fix';
 
     // 1. Token & Response Guardrails
@@ -115,6 +115,14 @@ ${getPersonaPrompt(context.persona)}
 
 You are operating on PRISM AI V2. 
 You must output strictly matching the provided JSON schema. Ensure your "confidenceMetrics" accurately reflect your certainty in the code analysis.
+
+CRITICAL RULE FOR LANGUAGE VALIDATION:
+The user has selected the language "${context.language || 'Unknown'}" from the dropdown. 
+If the code provided is obviously NOT written in this selected language (e.g. they provided C++ but selected C, or provided Python but selected JavaScript), you MUST return an issue with:
+- title: "Language Mismatch Detected"
+- explanation: "Please choose correct language. Please provide the choosed language code."
+- severity: "High"
+This issue should be the primary issue returned if a severe mismatch is detected.
 `.trim();
 
     try {
