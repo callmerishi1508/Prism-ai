@@ -121,7 +121,8 @@ export default function DashboardPage() {
       setLanguageState(ex.language);
       setPersona(ex.idealPersona);
       setActiveDemo(ex.id);
-      handleAnalyze(ex.code, false);
+      setIsDemoMode(true); // Automatically turn ON Demo Mode for built-in demos
+      handleAnalyze(ex.code, true);
     }
   };
 

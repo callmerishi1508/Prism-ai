@@ -49,7 +49,7 @@ export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
     id: 'REACT-01',
     title: 'React Async & State Management',
     content: 'All asynchronous operations inside useEffect hooks must include proper try/catch error handling and cleanup functions to avoid memory leaks. Loading states must be properly handled to prevent null reference errors before data is fetched.',
-    keywords: ['react', 'useeffect', 'usestate', 'async', 'await', 'promise', 'fetch', 'component', 'mount'],
+    keywords: ['react', 'useeffect', 'usestate', 'component', 'mount', 'hook'],
     category: 'Frontend Standard',
     author: 'Frontend Guild',
     lastUpdated: '2025-10-05'
