@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://placehold.co/150x150/000000/FFFFFF/png?text=PRISM+AI" alt="PRISM AI Logo" width="120" />
+  <img src="public/logo.png" alt="PRISM AI Logo" width="120" />
   
   <h1 align="center">PRISM AI</h1>
   <p align="center"><strong>Your Autonomous Senior Engineering Teammate</strong></p>

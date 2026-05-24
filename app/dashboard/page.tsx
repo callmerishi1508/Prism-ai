@@ -12,6 +12,7 @@ import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
 import { GitHubModal } from '@/components/dashboard/GitHubModal';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 
 const ICON_MAP: Record<string, React.ElementType> = {
@@ -141,9 +142,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.01] backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.4)] group-hover:shadow-[0_0_25px_rgba(56,189,248,0.6)] transition-shadow">
-            <Bot size={18} className="text-white" />
-          </div>
+          <Image src="/logo.png" alt="PRISM AI Logo" width={36} height={36} className="drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] group-hover:drop-shadow-[0_0_25px_rgba(56,189,248,0.6)] transition-shadow" />
           <h1 className="text-xl font-bold tracking-tight text-white">PRISM<span className="text-sky-400 font-light">AI</span></h1>
         </Link>
         

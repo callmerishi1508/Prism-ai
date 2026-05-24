@@ -15,9 +15,7 @@ export default function Home() {
       {/* Navigation */}
       <nav className="relative z-50 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto w-full">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.4)]">
-            <Bot size={18} className="text-white" />
-          </div>
+          <Image src="/logo.png" alt="PRISM AI Logo" width={36} height={36} className="drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
           <span className="text-xl font-bold tracking-tight text-white">PRISM<span className="text-sky-400 font-light">AI</span></span>
         </div>
         <div className="flex items-center gap-6">
