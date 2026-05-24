@@ -129,7 +129,7 @@ export default function DashboardPage() {
   const activePersona = PERSONAS[persona];
 
   return (
-    <div className="h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-hidden font-sans flex flex-col">
+    <div className="lg:h-screen min-h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-auto lg:overflow-hidden font-sans flex flex-col">
       <ScanningOverlay visible={isLoading} />
       
       {/* Dynamic Background ambient glow based on persona */}
@@ -167,13 +167,13 @@ export default function DashboardPage() {
               <div className={`block w-10 h-5 rounded-full transition-colors duration-300 ${isDemoMode ? 'bg-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}></div>
               <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform duration-300 ${isDemoMode ? 'translate-x-5' : ''}`}></div>
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200 transition-colors">Demo Mode</span>
+            <span className="hidden sm:inline text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200 transition-colors">Demo Mode</span>
           </label>
           <button 
             onClick={() => setIsGitHubModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10"
           >
-            <GitMerge size={16} /> Connect GitHub
+            <GitMerge size={16} /> <span className="hidden sm:inline">Connect GitHub</span>
           </button>
         </div>
       </header>
@@ -184,18 +184,18 @@ export default function DashboardPage() {
         onFetchSuccess={handleGitHubFetch} 
       />
 
-      <main className="relative z-10 flex gap-6 p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
+      <main className="relative z-10 flex flex-col lg:flex-row gap-6 p-4 lg:p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
         
         {/* Left Column (Code & Controls) */}
-        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
+        <div className="flex flex-col gap-6 w-full lg:w-1/2 lg:h-full lg:min-h-0 lg:overflow-y-auto overflow-x-hidden lg:pr-2 custom-scrollbar">
           {/* Controls Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
-            <div className="flex flex-wrap items-center gap-4 flex-1 min-w-0">
-              <div className="relative">
+          <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
+            <div className="flex flex-wrap items-center gap-4 w-full 2xl:w-auto">
+              <div className="relative w-full sm:w-auto">
                 <select
                   value={activeDemo || ''}
                   onChange={handleLoadDemo}
-                  className="appearance-none bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[160px]"
+                  className="appearance-none w-full sm:w-auto bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[160px]"
                 >
                   <option value="">Load Demo PR...</option>
                   {DEMO_EXAMPLES.map(ex => (
@@ -205,9 +205,9 @@ export default function DashboardPage() {
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
               </div>
 
-              <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
+              <div className="h-px w-full sm:h-6 sm:w-px bg-white/10 hidden sm:block"></div>
 
-              <div className="flex overflow-x-auto bg-black/50 rounded-xl p-1 border border-white/5 w-full xl:w-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex flex-wrap bg-black/50 rounded-xl p-1 border border-white/5 w-full sm:w-auto">
                 {Object.values(PERSONAS).map(p => {
                   const isActive = persona === p.id;
                   const Icon = ICON_MAP[p.theme.icon];
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                     <button
                       key={p.id}
                       onClick={() => setPersona(p.id)}
-                      className={`relative flex items-center whitespace-nowrap flex-shrink-0 gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
+                      className={`relative flex items-center justify-center flex-1 sm:flex-none gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
                     >
                       {isActive && (
                         <motion.div layoutId="personaGlow" className={`absolute inset-0 ${p.theme.badgeBg} ${p.theme.glow} rounded-lg border border-${p.theme.color}-500/50`} style={{ zIndex: -1 }} />
@@ -231,7 +231,7 @@ export default function DashboardPage() {
             <button
               onClick={() => handleAnalyze()}
               disabled={isLoading}
-              className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-semibold transition-all disabled:opacity-50 overflow-hidden bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 shadow-[0_0_20px_rgba(56,189,248,0.3)] hover:shadow-[0_0_30px_rgba(56,189,248,0.5)] ml-auto`}
+              className={`group w-full 2xl:w-auto relative flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-white font-semibold transition-all disabled:opacity-50 overflow-hidden bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 shadow-[0_0_20px_rgba(56,189,248,0.3)] hover:shadow-[0_0_30px_rgba(56,189,248,0.5)]`}
             >
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
               <Sparkles size={16} className="relative z-10 group-hover:animate-pulse" />
@@ -286,7 +286,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column (Insights) */}
-        <div className="w-1/2 h-full overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar pb-10">
+        <div className="w-full lg:w-1/2 lg:h-full lg:overflow-y-auto overflow-x-hidden lg:pr-2 custom-scrollbar pb-10">
           <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} />
         </div>
       </main>
