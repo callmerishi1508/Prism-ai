@@ -38,9 +38,16 @@ export default function DashboardPage() {
   const { data: analysis, isLoading, execute, error } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
   const handleAnalyze = async () => {
+    if (!code || code.trim() === '') return;
+    
     const start = Date.now();
-    await execute({ code, persona, isDemoMode });
-    setLatencyMs(Date.now() - start);
+    try {
+      await execute({ code, persona, isDemoMode });
+    } catch (err) {
+      console.error("Analysis execution failed:", err);
+    } finally {
+      setLatencyMs(Date.now() - start);
+    }
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {

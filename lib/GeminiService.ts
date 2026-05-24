@@ -145,8 +145,32 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
 
       return parsedResult.data;
 
-    } catch (error) {
-      CleanUp.logError('[GeminiService] Analysis failed, using Safe Fallback', error);
+    } catch (error: any) {
+      CleanUp.logError('[GeminiService] Analysis failed', error);
+
+      if (!context.isDemoMode && this.ai) {
+        return {
+          issues: [
+            {
+              title: `Gemini API Error`,
+              severity: 'Critical',
+              line: 1,
+              explanation: `The Gemini API failed to analyze the code. This is typically caused by a rate limit (429 Quota Exceeded) or an invalid API key. \n\n**Error Details:**\n${error?.message || 'Unknown Error'}`,
+              suggested_fix: 'Check your Google Cloud Console for quota limits or verify your GEMINI_API_KEY in .env.local.',
+              confidence: 1.0
+            }
+          ],
+          health_score: 0,
+          merge_recommendation: 'High Risk',
+          confidenceMetrics: {
+            architecture_confidence: 1,
+            analysis_reliability: 1,
+            ambiguity_level: 'High',
+            manual_review_recommended: true
+          }
+        };
+      }
+
       return this.getMockResponse(context.persona, isFixMode);
     }
   }
