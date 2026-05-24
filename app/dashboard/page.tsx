@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown } from 'lucide-react';
+import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code } from 'lucide-react';
 import { CodeEditor } from '@/components/dashboard/CodeEditor';
 import { InsightsPanel } from '@/components/dashboard/InsightsPanel';
 import ScanningOverlay from '@/components/animations/ScanningOverlay';
@@ -159,7 +159,15 @@ export default function DashboardPage() {
           </span>
         </motion.div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-6">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <div className="relative">
+              <input type="checkbox" className="sr-only" checked={isDemoMode} onChange={() => setIsDemoMode(!isDemoMode)} />
+              <div className={`block w-10 h-5 rounded-full transition-colors duration-300 ${isDemoMode ? 'bg-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}></div>
+              <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform duration-300 ${isDemoMode ? 'translate-x-5' : ''}`}></div>
+            </div>
+            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200 transition-colors">Demo Mode</span>
+          </label>
           <button 
             onClick={() => setIsGitHubModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10"
@@ -178,7 +186,7 @@ export default function DashboardPage() {
       <main className="relative z-10 flex gap-6 p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
         
         {/* Left Column (Code & Controls) */}
-        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0">
+        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto pr-2 custom-scrollbar">
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
             <div className="flex items-center gap-4">
