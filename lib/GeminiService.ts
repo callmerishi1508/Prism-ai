@@ -297,8 +297,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (!matchedDemo && code.trim() !== '') {
       return {
         issues: [
-          { id: 'ERR-429', title: 'Heuristic Fallback Engine Activated', type: 'performance', severity: 'low', lineNumbers: [1], description: 'The real-time Gemini AI engine is currently at API capacity (Rate Limit 429). We have seamlessly failed over to our local heuristic engine to keep you moving without interruption.\n\n*Note: This is a lightweight heuristic review. For deep AI analysis, try again in 60 seconds.*', suggestedFix: 'Upgrade API limits or add Redis caching layers for production scale.' },
-          { id: 'VAL-001', title: 'Input Validation Recommendation', type: 'security', severity: 'medium', lineNumbers: [2], description: 'Heuristic scan: Ensure all user inputs and external payloads in this custom code block are explicitly sanitized before processing to prevent injection attacks.', suggestedFix: 'Implement robust validation schemas (e.g., Zod, Pydantic).' }
+          { title: 'Heuristic Fallback Engine Activated', severity: 'Low', line: 1, explanation: 'The real-time Gemini AI engine is currently at API capacity (Rate Limit 429). We have seamlessly failed over to our local heuristic engine to keep you moving without interruption.\n\n*Note: This is a lightweight heuristic review. For deep AI analysis, try again in 60 seconds.*', suggested_fix: 'Upgrade API limits or add Redis caching layers for production scale.', confidence: 0.9 },
+          { title: 'Input Validation Recommendation', severity: 'Medium', line: 2, explanation: 'Heuristic scan: Ensure all user inputs and external payloads in this custom code block are explicitly sanitized before processing to prevent injection attacks.', suggested_fix: 'Implement robust validation schemas (e.g., Zod, Pydantic).', confidence: 0.8 }
         ],
         health_score: 75,
         merge_recommendation: 'Manual Review Required',
@@ -312,7 +312,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (matchedDemo?.id === 'sql-injection') {
       return {
         issues: [
-          { id: 'SQL-001', title: 'SQL Injection Vulnerability', type: 'security', severity: 'critical', lineNumbers: [7], description: 'Concatenating user input directly into a SQL query exposes the system to injection attacks. This must be fixed immediately using prepared statements.', suggestedFix: 'const query = "SELECT * FROM users WHERE id = ?";\ndb.execute(query, [userId]);' }
+          { title: 'SQL Injection Vulnerability', severity: 'Critical', line: 7, explanation: 'Concatenating user input directly into a SQL query exposes the system to injection attacks. This must be fixed immediately using prepared statements.', suggested_fix: 'const query = "SELECT * FROM users WHERE id = ?";\ndb.execute(query, [userId]);', confidence: 1.0 }
         ],
         health_score: 40,
         merge_recommendation: 'High Risk',
@@ -325,7 +325,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (matchedDemo?.id === 'nested-loops') {
       return {
         issues: [
-          { id: 'PERF-001', title: 'O(N^2) Complexity detected', type: 'performance', severity: 'high', lineNumbers: [5], description: 'Nested loops over the same transactions array will cause severe CPU bottlenecks as the payload scales. Please optimize using a Hash Map or Set.', suggestedFix: 'const seen = new Set();\nfor(const t of user.transactions) {\n  if(!seen.has(t.id)) {\n    processed.push(t);\n    seen.add(t.id);\n  }\n}' }
+          { title: 'O(N^2) Complexity detected', severity: 'High', line: 5, explanation: 'Nested loops over the same transactions array will cause severe CPU bottlenecks as the payload scales. Please optimize using a Hash Map or Set.', suggested_fix: 'const seen = new Set();\nfor(const t of user.transactions) {\n  if(!seen.has(t.id)) {\n    processed.push(t);\n    seen.add(t.id);\n  }\n}', confidence: 0.95 }
         ],
         health_score: 65,
         merge_recommendation: 'Needs Changes',
@@ -338,12 +338,12 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (matchedDemo?.id === 'unsafe-auth') {
       return {
         issues: [
-          { id: 'SEC-001', title: 'Plaintext Password Storage', type: 'security', severity: 'critical', lineNumbers: [8], description: 'Never compare raw passwords. Use bcrypt or Argon2 to hash passwords securely.', suggestedFix: 'const isValid = await bcrypt.compare(password, user.passwordHash);' },
-          { id: 'SEC-002', title: 'Insecure Token Generation', type: 'security', severity: 'high', lineNumbers: [11], description: 'Math.random() is not cryptographically secure for generating session tokens.', suggestedFix: 'const token = crypto.randomBytes(32).toString("hex");' },
-          { id: 'SEC-003', title: 'Timing Attack Vulnerability', type: 'security', severity: 'medium', lineNumbers: [18], description: 'Returning different error messages for "User not found" and "Incorrect password" enables user enumeration. Use a generic error message.', suggestedFix: 'return { success: false, error: "Invalid credentials" };' }
+          { title: 'Plaintext Password Storage', severity: 'Critical', line: 8, explanation: 'Never compare raw passwords. Use bcrypt or Argon2 to hash passwords securely.', suggested_fix: 'const isValid = await bcrypt.compare(password, user.passwordHash);', confidence: 1.0 },
+          { title: 'Insecure Token Generation', severity: 'High', line: 11, explanation: 'Math.random() is not cryptographically secure for generating session tokens.', suggested_fix: 'const token = crypto.randomBytes(32).toString("hex");', confidence: 0.95 },
+          { title: 'Timing Attack Vulnerability', severity: 'Medium', line: 18, explanation: 'Returning different error messages for "User not found" and "Incorrect password" enables user enumeration. Use a generic error message.', suggested_fix: 'return { success: false, error: "Invalid credentials" };', confidence: 0.9 }
         ],
         health_score: 10,
-        merge_recommendation: 'Do Not Merge',
+        merge_recommendation: 'High Risk',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
         promptVersion: 'v2.0',
         ragContext
@@ -353,8 +353,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (matchedDemo?.id === 'missing-async-error') {
       return {
         issues: [
-          { id: 'BUG-001', title: 'Missing Error Handling in Async useEffect', type: 'bug', severity: 'high', lineNumbers: [8], description: 'Promises inside useEffect must have try/catch blocks to prevent unhandled rejections from crashing the component.', suggestedFix: 'try {\n  const result = await fetchUserData(userId);\n  setData(result);\n} catch (e) {\n  setError(e);\n}' },
-          { id: 'BUG-002', title: 'No Cleanup Function', type: 'bug', severity: 'medium', lineNumbers: [16], description: 'Missing a cleanup function to cancel the fetch request if the component unmounts or userId changes quickly.', suggestedFix: 'return () => { abortController.abort(); }' }
+          { title: 'Missing Error Handling in Async useEffect', severity: 'High', line: 8, explanation: 'Promises inside useEffect must have try/catch blocks to prevent unhandled rejections from crashing the component.', suggested_fix: 'try {\n  const result = await fetchUserData(userId);\n  setData(result);\n} catch (e) {\n  setError(e);\n}', confidence: 0.95 },
+          { title: 'No Cleanup Function', severity: 'Medium', line: 16, explanation: 'Missing a cleanup function to cancel the fetch request if the component unmounts or userId changes quickly.', suggested_fix: 'return () => { abortController.abort(); }', confidence: 0.9 }
         ],
         health_score: 60,
         merge_recommendation: 'Needs Changes',
@@ -367,8 +367,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (matchedDemo?.id === 'pydantic-validation') {
       return {
         issues: [
-          { id: 'SEC-004', title: 'Missing Pydantic Guardrails', type: 'security', severity: 'critical', lineNumbers: [8], description: 'Directly parsing `request.json()` without schema validation opens the endpoint to arbitrary payload injection. Use a Pydantic BaseModel.', suggestedFix: 'class UserUpdate(BaseModel):\n    user_id: int\n    email: EmailStr\n\n@app.post("/api/v1/update_profile")\nasync def update_profile(data: UserUpdate):' },
-          { id: 'SEC-005', title: 'SQL Injection Risk', type: 'security', severity: 'high', lineNumbers: [15], description: 'The email field is directly interpolated into the SQL query without sanitization.', suggestedFix: 'db.execute("UPDATE users SET email = :email WHERE id = :user_id", {"email": data.email, "user_id": data.user_id})' }
+          { title: 'Missing Pydantic Guardrails', severity: 'Critical', line: 8, explanation: 'Directly parsing `request.json()` without schema validation opens the endpoint to arbitrary payload injection. Use a Pydantic BaseModel.', suggested_fix: 'class UserUpdate(BaseModel):\n    user_id: int\n    email: EmailStr\n\n@app.post("/api/v1/update_profile")\nasync def update_profile(data: UserUpdate):', confidence: 0.98 },
+          { title: 'SQL Injection Risk', severity: 'High', line: 15, explanation: 'The email field is directly interpolated into the SQL query without sanitization.', suggested_fix: 'db.execute("UPDATE users SET email = :email WHERE id = :user_id", {"email": data.email, "user_id": data.user_id})', confidence: 0.95 }
         ],
         health_score: 25,
         merge_recommendation: 'High Risk',
@@ -381,8 +381,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
     // Fallback Mock for everything else
     return {
       issues: [
-        { id: 'BUG-003', title: 'No Input Validation', type: 'bug', severity: 'medium', lineNumbers: [4], description: 'We should probably validate the user object before querying the database to prevent unhandled errors from breaking the flow.', suggestedFix: 'if (!user || !user.id) return [];' },
-        { id: 'STYLE-001', title: 'Suboptimal loop', type: 'style', severity: 'low', lineNumbers: [10], description: 'This loop is a bit over-engineered. Let\'s refactor for simplicity and developer velocity.', suggestedFix: 'return Array.from(new Set(user.transactions.map(t => t.id))).map(id => user.transactions.find(t => t.id === id));' }
+        { title: 'No Input Validation', severity: 'Medium', line: 4, explanation: 'We should probably validate the user object before querying the database to prevent unhandled errors from breaking the flow.', suggested_fix: 'if (!user || !user.id) return [];', confidence: 0.8 },
+        { title: 'Suboptimal loop', severity: 'Low', line: 10, explanation: 'This loop is a bit over-engineered. Let\'s refactor for simplicity and developer velocity.', suggested_fix: 'return Array.from(new Set(user.transactions.map(t => t.id))).map(id => user.transactions.find(t => t.id === id));', confidence: 0.7 }
       ],
       health_score: 82,
       merge_recommendation: 'Safe to Merge',
