@@ -21,7 +21,7 @@ const severityConfig = {
 
 export function IssueCard({ issue }: IssueCardProps) {
   const [copied, setCopied] = React.useState(false);
-  const config = severityConfig[issue.severity] || severityConfig.Medium;
+  const config = severityConfig[issue.severity as keyof typeof severityConfig] || severityConfig.Medium;
   const Icon = config.icon;
 
   const handleCopy = () => {

@@ -80,7 +80,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
     );
   }
 
-  const { issues, health_score, merge_recommendation } = analysis;
+  const { issues, health_score = 100, merge_recommendation } = analysis;
 
   const severityCount = issues.reduce((acc: Record<string, number>, issue: Issue) => {
     acc[issue.severity] = (acc[issue.severity] || 0) + 1;
