@@ -1,3 +1,4 @@
+import * as crypto from 'crypto';
 import { Pinecone } from '@pinecone-database/pinecone';
 import { GoogleGenAI } from '@google/genai';
 
@@ -18,6 +19,8 @@ const pinecone = PINECONE_API_KEY ? new Pinecone({ apiKey: PINECONE_API_KEY }) :
 
 // Initialize Google Gemini for Embeddings
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+
+const embeddingCache = new Map<string, number[]>();
 
 export interface AdvancedRetrievedDoc {
   id: string;
@@ -43,13 +46,21 @@ export async function retrieveAdvancedContext(code: string, maxDocs: number = 2)
   try {
     // 1. Generate Embeddings for the incoming code snippet
     // We use the Gemini text-embedding model to understand the semantic meaning of the code
-    const embeddingResponse = await ai.models.embedContent({
-      model: 'embedding-001',
-      contents: code,
-    });
-    
-    const vector = embeddingResponse.embeddings?.[0]?.values;
-    if (!vector) throw new Error("Failed to generate code embeddings.");
+    const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+    let vector = embeddingCache.get(codeHash);
+
+    if (vector) {
+      console.log('[Embedding Cache Hit] Bypassing Gemini API for vector generation.');
+    } else {
+      console.log('[Embedding Cache Miss] Generating new vector via Gemini API.');
+      const embeddingResponse = await ai.models.embedContent({
+        model: 'embedding-001',
+        contents: code,
+      });
+      vector = embeddingResponse.embeddings?.[0]?.values;
+      if (!vector) throw new Error("Failed to generate code embeddings.");
+      embeddingCache.set(codeHash, vector);
+    }
 
     // 2. Query the Pinecone Vector Database
     const index = pinecone.Index(PINECONE_INDEX_NAME);
