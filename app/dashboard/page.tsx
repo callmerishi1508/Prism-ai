@@ -58,7 +58,7 @@ const LANGUAGE_TEMPLATES: Record<string, string> = {
 const DEFAULT_CODE = LANGUAGE_TEMPLATES['javascript'];
 
 export default function DashboardPage() {
-  const [code, setCode] = useState(DEFAULT_CODE);
+  const [code, setCodeState] = useState(DEFAULT_CODE);
   const [language, setLanguageState] = useState('javascript');
   const [persona, setPersona] = useState<PersonaId>('cto');
   const [isDemoMode, setIsDemoMode] = useState(false);
