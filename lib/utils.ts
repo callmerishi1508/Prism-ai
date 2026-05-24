@@ -19,49 +19,16 @@ export const formatResponseResult = (rawResponse: string | object, mode: Analysi
   try {
     const parsed = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
 
-    // Structure the response according to our schema
+    // Use AI generated values or provide safe fallbacks
     return {
       ...parsed,
       mode,
-      health_score: calculatedHealthScore(parsed),
-      merge_recommendation: calculateMergeRecommendation(parsed),
-      persona_selection: 'Startup CTO' // In real implementation this would come from user selection
+      health_score: parsed.health_score !== undefined ? parsed.health_score : 75,
+      merge_recommendation: parsed.merge_recommendation || 'Safe to Merge',
     };
   } catch (e) {
     throw new ResponseError('Invalid response format from AI engine', 502);
   }
-};
-
-export const calculatedHealthScore = (response: any): number => {
-  const scores: Record<string, number> = {
-    maintainability: 0.2,
-    security: 0.25,
-    readability: 0.15,
-    performance: 0.2,
-    testing: 0.2
-  };
-
-  const weights: Record<string, number> = {
-    maintainability: 80,
-    security: 75,
-    readability: 85,
-    performance: 80,
-    testing: 60
-  };
-
-  const total = Object.keys(scores).reduce((sum, key) => {
-    return sum + scores[key] * weights[key] / 100;
-  }, 0);
-
-  return Math.round(total);
-};
-
-export const calculateMergeRecommendation = (response: any): string => {
-  const healthScore = calculatedHealthScore(response);
-
-  if (healthScore > 80) return 'Safe to Merge';
-  if (healthScore > 60) return 'Needs Changes';
-  return 'High Risk';
 };
 
 export const getSeverityColor = (severity: string): string => {

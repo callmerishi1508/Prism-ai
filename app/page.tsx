@@ -71,7 +71,7 @@ export default function Home() {
               </motion.button>
             </Link>
             
-            <Link href="/dashboard">
+            <Link href="/dashboard?demo=true">
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}

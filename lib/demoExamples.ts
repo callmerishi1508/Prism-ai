@@ -131,5 +131,31 @@ export function UserDashboard({ userId }: { userId: string }) {
     </div>
   );
 }`
+  },
+  {
+    id: 'pydantic-validation',
+    title: 'Missing Pydantic Guardrail',
+    description: 'A Python API endpoint lacking input validation and type checking via Pydantic.',
+    language: 'python',
+    idealPersona: 'faang',
+    expectedIssues: ['Missing Type Validation', 'Injection Vulnerability', 'No Guardrails'],
+    code: `from fastapi import FastAPI, Request
+
+app = FastAPI()
+
+# VULNERABILITY: Missing Pydantic Guardrails
+# Accepting raw JSON without schema validation
+@app.post("/api/v1/update_profile")
+async def update_profile(request: Request):
+    data = await request.json()
+    
+    # Unsafe property access
+    user_id = data['user_id']
+    new_email = data['email']
+    
+    # SQL Injection risk since we haven't sanitized the input
+    db.execute(f"UPDATE users SET email = '{new_email}' WHERE id = {user_id}")
+    
+    return {"status": "success"}`
   }
 ];

@@ -10,8 +10,9 @@ import { useAIRequest } from '@/hooks/useAIRequest';
 import { PERSONAS, PersonaId } from '@/lib/personas';
 import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
-import { DebugPanel } from '@/components/dashboard/DebugPanel';
 import { GitHubModal } from '@/components/dashboard/GitHubModal';
+import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
@@ -61,12 +62,15 @@ export default function DashboardPage() {
   const [code, setCodeState] = useState(DEFAULT_CODE);
   const [language, setLanguageState] = useState('javascript');
   const [persona, setPersona] = useState<PersonaId>('cto');
-  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [activeDemo, setActiveDemo] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const [isDemoMode, setIsDemoMode] = useState(searchParams.get('demo') === 'true');
 
   // Wrapper around setCode to automatically disable demo mode when user types
   const setCode = (newCode: string) => {
     setCodeState(newCode);
     setIsDemoMode(false);
+    setActiveDemo(null);
   };
 
   const setLanguage = (newLang: string) => {
@@ -105,12 +109,18 @@ export default function DashboardPage() {
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const ex = DEMO_EXAMPLES.find(x => x.id === e.target.value);
+    const demoId = e.target.value;
+    if (!demoId) {
+       setActiveDemo(null);
+       return;
+    }
+    const ex = DEMO_EXAMPLES.find(x => x.id === demoId);
     if (ex) {
       setCodeState(ex.code);
       setLanguageState(ex.language);
       setPersona(ex.idealPersona);
-      setIsDemoMode(true); // Turn demo mode ON explicitly when loading a demo example
+      setIsDemoMode(true);
+      setActiveDemo(ex.id);
       handleAnalyze(ex.code, true);
     }
   };
@@ -120,7 +130,6 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-x-hidden font-sans">
       <ScanningOverlay visible={isLoading} />
-      <DebugPanel analysis={analysis} latencyMs={latencyMs} />
       
       {/* Dynamic Background ambient glow based on persona */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 transition-colors duration-1000">
@@ -130,12 +139,12 @@ export default function DashboardPage() {
 
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.01] backdrop-blur-xl">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.4)]">
+        <Link href="/" className="flex items-center gap-3 group">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-500 to-indigo-500 flex items-center justify-center shadow-[0_0_15px_rgba(56,189,248,0.4)] group-hover:shadow-[0_0_25px_rgba(56,189,248,0.6)] transition-shadow">
             <Bot size={18} className="text-white" />
           </div>
           <h1 className="text-xl font-bold tracking-tight text-white">PRISM<span className="text-sky-400 font-light">AI</span></h1>
-        </div>
+        </Link>
         
         {/* Active Persona Chip */}
         <motion.div 
@@ -226,6 +235,41 @@ export default function DashboardPage() {
               <Sparkles size={16} className="relative z-10 group-hover:animate-pulse" />
               <span className="relative z-10">Analyze PR</span>
             </button>
+          </div>
+
+          {/* Persona and Demo Info Panel */}
+          <div className={`p-4 rounded-xl border transition-colors duration-300 ${activePersona.theme.badgeBg} border-${activePersona.theme.color}-500/20`}>
+             <div className="flex items-start gap-3">
+               <div className={`p-2 rounded-lg bg-${activePersona.theme.color}-500/10`}>
+                 {React.createElement(ICON_MAP[activePersona.theme.icon], { size: 18, className: activePersona.theme.badgeText })}
+               </div>
+               <div>
+                 <h4 className={`text-sm font-semibold mb-1 ${activePersona.theme.badgeText}`}>
+                   {activePersona.name} Focus
+                 </h4>
+                 <p className="text-sm text-gray-400 font-light leading-relaxed">
+                   {activePersona.systemRole} This persona prioritizes: <span className="font-medium text-gray-300">{activePersona.reviewPriorities.join(', ')}</span>.
+                 </p>
+               </div>
+             </div>
+             
+             {activeDemo && (
+               <div className="mt-4 pt-4 border-t border-white/5 flex items-start gap-3">
+                 <div className="p-2 rounded-lg bg-emerald-500/10">
+                   <Code size={18} className="text-emerald-400" />
+                 </div>
+                 <div>
+                   <h4 className="text-sm font-semibold mb-1 text-emerald-400">
+                     Active Demo: {DEMO_EXAMPLES.find(d => d.id === activeDemo)?.title}
+                   </h4>
+                   <p className="text-sm text-gray-400 font-light leading-relaxed">
+                     {DEMO_EXAMPLES.find(d => d.id === activeDemo)?.description} 
+                     <br />
+                     <span className="text-xs font-mono text-emerald-500/70 mt-1 block">Expected Issues: {DEMO_EXAMPLES.find(d => d.id === activeDemo)?.expectedIssues.join(', ')}</span>
+                   </p>
+                 </div>
+               </div>
+             )}
           </div>
 
           {/* Editor Area */}
