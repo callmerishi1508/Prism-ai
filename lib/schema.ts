@@ -24,6 +24,13 @@ export const AnalysisResultSchema = z.object({
   promptVersion: z.literal('v2.0').optional()
 });
 
+export const FixResultSchema = z.object({
+  fixed_code: z.string().describe('The corrected code snippet'),
+  explanation: z.string().describe('Explanation of why this fix works'),
+  diff: z.string().optional().describe('Optional unified diff showing changes')
+});
+
 export type Issue = z.infer<typeof IssueSchema>;
 export type AnalysisResult = z.infer<typeof AnalysisResultSchema>;
+export type FixResult = z.infer<typeof FixResultSchema>;
 export type ConfidenceMetrics = z.infer<typeof ConfidenceMetricsSchema>;

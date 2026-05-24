@@ -15,9 +15,9 @@ import { AnalysisResult } from './schema';
 export type PersonaType = 'Startup CTO' | 'Security Expert' | 'Performance Engineer' | 'FAANG Reviewer';
 export type AnalysisMode = 'analysis' | 'fix' | 'tests' | 'risk';
 
-export const formatResponseResult = (rawResponse: string, mode: AnalysisMode): AnalysisResult => {
+export const formatResponseResult = (rawResponse: string | object, mode: AnalysisMode): AnalysisResult => {
   try {
-    const parsed = JSON.parse(rawResponse);
+    const parsed = typeof rawResponse === 'string' ? JSON.parse(rawResponse) : rawResponse;
 
     // Structure the response according to our schema
     return {

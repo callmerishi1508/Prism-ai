@@ -5,7 +5,7 @@
 
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getPersonaPrompt, PersonaId } from './personas';
-import { AnalysisResultSchema } from './schema';
+import { AnalysisResultSchema, FixResultSchema } from './schema';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const MAX_CODE_LENGTH = 50000; // ~15k tokens guardrail
@@ -61,6 +61,18 @@ class GeminiService {
     };
   }
 
+  private getFixResponseSchema(): Schema {
+    return {
+      type: Type.OBJECT,
+      properties: {
+        fixed_code: { type: Type.STRING },
+        explanation: { type: Type.STRING },
+        diff: { type: Type.STRING }
+      },
+      required: ['fixed_code', 'explanation']
+    };
+  }
+
   async analyzeCode(code: string, context: { persona: PersonaId, mode: string, isDemoMode?: boolean }) {
     const isFixMode = context.mode === 'fix';
 
@@ -72,7 +84,7 @@ class GeminiService {
 
     if (context.isDemoMode || !this.ai) {
       console.log('[Demo Mode] Returning safe mocked response');
-      return this.getMockResponse(context.persona);
+      return this.getMockResponse(context.persona, isFixMode);
     }
 
     const systemInstruction = `
@@ -90,7 +102,7 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
         config: {
           systemInstruction,
           responseMimeType: 'application/json',
-          responseSchema: this.getResponseSchema(),
+          responseSchema: isFixMode ? this.getFixResponseSchema() : this.getResponseSchema(),
           temperature: 0.2 // Lower temp for deterministic structured output
         }
       });
@@ -100,23 +112,24 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
       const rawJson = JSON.parse(response.text);
 
       // 3. Self-Healing JSON Fallback Layer (Zod Validation)
-      const parsedResult = AnalysisResultSchema.safeParse(rawJson);
+      const TargetSchema = isFixMode ? FixResultSchema : AnalysisResultSchema;
+      const parsedResult = TargetSchema.safeParse(rawJson);
       
       if (!parsedResult.success) {
         console.error('[Zod Validation Failed] Attempting Self-Healing...', parsedResult.error);
-        return await this.attemptSelfHealing(response.text, systemInstruction, context.persona);
+        return await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode);
       }
 
       return parsedResult.data;
 
     } catch (error) {
       CleanUp.logError('[GeminiService] Analysis failed, using Safe Fallback', error);
-      return this.getMockResponse(context.persona);
+      return this.getMockResponse(context.persona, isFixMode);
     }
   }
 
-  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId) {
-    if (!this.ai) return this.getMockResponse(persona);
+  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId, isFixMode: boolean) {
+    if (!this.ai) return this.getMockResponse(persona, isFixMode);
 
     try {
       console.log('[Self-Healing] Pinging LLM to repair JSON...');
@@ -126,7 +139,7 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
         config: {
           systemInstruction,
           responseMimeType: 'application/json',
-          responseSchema: this.getResponseSchema(),
+          responseSchema: isFixMode ? this.getFixResponseSchema() : this.getResponseSchema(),
           temperature: 0.0
         }
       });
@@ -134,7 +147,8 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
       if (!repairResponse.text) throw new Error("Repair failed");
       const repairedJson = JSON.parse(repairResponse.text);
       
-      const finalResult = AnalysisResultSchema.safeParse(repairedJson);
+      const TargetSchema = isFixMode ? FixResultSchema : AnalysisResultSchema;
+      const finalResult = TargetSchema.safeParse(repairedJson);
       if (finalResult.success) {
         console.log('[Self-Healing] Successfully repaired JSON.');
         return finalResult.data;
@@ -142,11 +156,18 @@ You must output strictly matching the provided JSON schema. Ensure your "confide
       throw new Error("Self-healing validation failed.");
     } catch (e) {
       console.error('[Self-Healing] Failed completely. Returning safe fallback.', e);
-      return this.getMockResponse(persona);
+      return this.getMockResponse(persona, isFixMode);
     }
   }
 
-  getMockResponse(persona: PersonaId) {
+  getMockResponse(persona: PersonaId, isFixMode: boolean = false) {
+    if (isFixMode) {
+      return {
+        fixed_code: '// Optimized and fixed code\nconst safeValue = "fixed";',
+        explanation: 'I have secured the logic and optimized performance.',
+        diff: '- const unsafe = "bad";\n+ const safeValue = "fixed";'
+      };
+    }
     const defaultConfidence = {
       architecture_confidence: 0.95,
       analysis_reliability: 0.98,
