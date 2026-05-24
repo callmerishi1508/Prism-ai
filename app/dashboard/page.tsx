@@ -76,13 +76,14 @@ export default function DashboardPage() {
   const [latencyMs, setLatencyMs] = useState<number | undefined>();
   const { data: analysis, isLoading, execute, error } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
-  const handleAnalyze = async (overrideCode?: string) => {
+  const handleAnalyze = async (overrideCode?: string, overrideDemoMode?: boolean) => {
     const codeToAnalyze = overrideCode !== undefined ? overrideCode : code;
+    const demoModeToUse = overrideDemoMode !== undefined ? overrideDemoMode : isDemoMode;
     if (!codeToAnalyze || codeToAnalyze.trim() === '') return;
     
     const start = Date.now();
     try {
-      await execute({ code: codeToAnalyze, language, persona, isDemoMode });
+      await execute({ code: codeToAnalyze, language, persona, isDemoMode: demoModeToUse });
     } catch (err) {
       console.error("Analysis execution failed:", err);
     } finally {
@@ -92,8 +93,9 @@ export default function DashboardPage() {
 
   const handleGitHubFetch = (diff: string) => {
     setCode(diff);
+    setIsDemoMode(false); // Automatically turn off demo mode for real PRs
     // Auto trigger analysis with the new diff
-    handleAnalyze(diff);
+    handleAnalyze(diff, false);
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {

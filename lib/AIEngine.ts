@@ -8,6 +8,11 @@ import { PersonaId } from './personas';
 
 class LanguageGuardrail {
   static checkMismatch(code: string, expectedLanguage?: string): { isMismatch: boolean, detectedLanguage?: string } {
+    // Bypass guardrail for GitHub PR diffs since they contain multiple languages/formats
+    if (code.includes('// GitHub PR Integration:') || code.includes('--- a/') || code.includes('+++ b/')) {
+      return { isMismatch: false };
+    }
+
     if (!expectedLanguage) return { isMismatch: false };
     
     const lowerCode = code.toLowerCase();
