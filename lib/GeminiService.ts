@@ -207,7 +207,11 @@ This issue should be the primary issue returned if a severe mismatch is detected
             analysis_reliability: 1,
             ambiguity_level: 'High',
             manual_review_recommended: true
-          }
+          },
+          ragContext: retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ 
+            id: d.id, title: d.title, content: d.content,
+            category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
+          })) : undefined
         };
       }
 
