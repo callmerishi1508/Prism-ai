@@ -256,39 +256,6 @@ This issue should be the primary issue returned if a severe mismatch is detected
       }
 
       return this.getMockResponse(context.persona, isFixMode, code, context.language || '');
-        }
-
-        const cleanMessage = error?.message 
-          ? error.message.split('{')[0].trim() 
-          : 'Unknown API Error';
-
-        return {
-          issues: [
-            {
-              title: `Gemini API Error`,
-              severity: 'Critical',
-              line: 1,
-              explanation: `The Gemini API failed to analyze the code. \n\n**Error Details:**\n${cleanMessage}`,
-              suggested_fix: 'Check your Google Cloud Console or verify your GEMINI_API_KEY in .env.local.',
-              confidence: 1.0
-            }
-          ],
-          health_score: 0,
-          merge_recommendation: 'High Risk',
-          confidenceMetrics: {
-            architecture_confidence: 1,
-            analysis_reliability: 1,
-            ambiguity_level: 'High',
-            manual_review_recommended: true
-          },
-          ragContext: retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ 
-            id: d.id, title: d.title, content: d.content,
-            category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
-          })) : undefined
-        };
-      }
-
-      return this.getMockResponse(context.persona, isFixMode, code, context.language || '');
     }
   }
 
