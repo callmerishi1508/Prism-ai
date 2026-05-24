@@ -158,7 +158,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
           <div>
             <h3 className="text-gray-400 text-sm font-medium uppercase tracking-wider mb-1">PR Health Score</h3>
-            <p className="text-4xl font-bold text-white tracking-tight">{health_score}<span className="text-gray-500 text-xl font-normal">/100</span></p>
+            <p className="text-4xl font-bold text-white tracking-tight">{Math.round(health_score)}<span className="text-gray-500 text-xl font-normal">/100</span></p>
             <div className="flex items-center gap-1.5 mt-2 text-xs font-medium">
               <span className="text-gray-500">Readiness:</span>
               <span className={healthColor}>{health_score > 80 ? 'Production Ready' : health_score > 60 ? 'Requires Revision' : 'Do Not Deploy'}</span>
