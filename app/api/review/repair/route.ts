@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json(result);
   } catch (error: any) {
-    console.error('Repair API Error:', error.message);
-    return NextResponse.json({ error: 'Failed to generate repaired version' }, { status: 500 });
+    console.error('Repair API Error:', error);
+    return NextResponse.json({ error: 'Failed to generate repaired version', stack: error.stack, message: error.message }, { status: 500 });
   }
 }

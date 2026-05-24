@@ -745,7 +745,43 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
 
     } catch (error: any) {
       CleanUp.logError('Gemini API Error in generateRepairedVersion', error);
-      throw error;
+      
+      const isRateLimit = error?.status === 429 || error?.status === 503 || (error?.message && (error.message.includes('429') || error.message.includes('503')));
+      
+      if (isRateLimit) {
+        console.warn('[Gemini Fallback] Pro model exhausted for repair. Attempting seamless fallback to Gemini 2.5 Flash.');
+        try {
+          const flashResponse = await activeAi.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: [
+              { role: 'user', parts: [{ text: `Original Code:\n\n${code}\n\nIdentified Issues:\n\n${JSON.stringify(issues, null, 2)}` }] }
+            ],
+            config: {
+              systemInstruction: systemInstruction,
+              responseMimeType: 'application/json',
+              responseSchema: this.getRepairedVersionSchema(),
+              temperature: 0.2,
+            }
+          });
+
+          if (flashResponse.text) {
+            const result = JSON.parse(flashResponse.text) as RepairedVersionResult;
+            console.log('[Gemini Fallback] Flash repair fallback succeeded.');
+            return result;
+          }
+        } catch (flashErr) {
+          console.error('[Gemini Fallback] Flash repair also failed:', flashErr);
+        }
+      }
+
+      // Final Resilience: Return a safe default instead of failing
+      return {
+        repairedCode: code + '\n// PRISM AI: Autonomous repair temporarily unavailable due to extreme load. Please try again.',
+        summary: ['Service temporarily degraded', 'Fallback mechanism engaged'],
+        riskLevel: 'Low',
+        linesModified: 0,
+        vulnerabilitiesResolved: 0
+      };
     }
   }
 }
