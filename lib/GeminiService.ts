@@ -286,10 +286,16 @@ This issue should be the primary issue returned if a severe mismatch is detected
     };
 
     const retrievedDocs = retrieveContext(code, language);
-    const ragContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ 
+    const fallbackRagContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ 
       id: d.id, title: d.title, content: d.content,
       category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
     })) : undefined;
+    
+    // Helper to get specific doc for demos
+    const getDoc = (id: string) => {
+      const doc = require('./rag/knowledgeBase').COMPANY_KNOWLEDGE_BASE.find((d: any) => d.id === id);
+      return doc ? [{...doc, relevanceScore: 0.97}] : undefined;
+    };
 
     // Smart Mock Engine: Check if this is custom code or a specific Demo PR
     const matchedDemo = DEMO_EXAMPLES.find(ex => ex.code.trim() === code.trim());
@@ -304,7 +310,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'Manual Review Required',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true, analysis_reliability: 0.70 },
         promptVersion: 'v2.0-heuristic-fallback',
-        ragContext
+        ragContext: fallbackRagContext
       };
     }
 
@@ -318,7 +324,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'High Risk',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
         promptVersion: 'v2.0',
-        ragContext
+        ragContext: getDoc('DB-01')
       };
     }
     
@@ -331,7 +337,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'Needs Changes',
         confidenceMetrics: defaultConfidence,
         promptVersion: 'v2.0',
-        ragContext
+        ragContext: getDoc('PERF-01')
       };
     }
 
@@ -346,7 +352,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'High Risk',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
         promptVersion: 'v2.0',
-        ragContext
+        ragContext: getDoc('SEC-01')
       };
     }
 
@@ -360,7 +366,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'Needs Changes',
         confidenceMetrics: defaultConfidence,
         promptVersion: 'v2.0',
-        ragContext
+        ragContext: getDoc('REACT-01')
       };
     }
 
@@ -374,7 +380,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         merge_recommendation: 'High Risk',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
         promptVersion: 'v2.0',
-        ragContext
+        ragContext: getDoc('PY-01')
       };
     }
     
@@ -388,7 +394,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
       merge_recommendation: 'Safe to Merge',
       confidenceMetrics: defaultConfidence,
       promptVersion: 'v2.0',
-      ragContext
+      ragContext: fallbackRagContext
     };
   }
 }
