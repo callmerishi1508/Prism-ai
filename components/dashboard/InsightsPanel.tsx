@@ -68,13 +68,20 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
 
   if (!analysis) {
     return (
-      <div className="flex-1 w-full h-full min-h-[500px] flex flex-col items-center justify-center border border-white/10 bg-white/[0.02] rounded-2xl backdrop-blur-xl shadow-2xl group transition-colors hover:bg-white/[0.04]">
-        <div className="p-4 rounded-full bg-white/5 mb-6 group-hover:scale-110 transition-transform duration-500">
-          <Activity className="w-12 h-12 text-gray-600 group-hover:text-gray-400 transition-colors" />
+      <div className="flex-1 w-full h-full min-h-[500px] flex flex-col items-center justify-center border border-white/5 bg-[#050505] rounded-2xl relative overflow-hidden shadow-2xl group transition-colors">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.02),transparent_60%)]" />
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoMjU1LCAyNTUsIDI1NSwgMC4wMikiLz48L3N2Zz4=')] opacity-30 group-hover:opacity-50 transition-opacity duration-700" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-64 h-64 rounded-full border border-white/[0.02] animate-[ping_4s_cubic-bezier(0,0,0.2,1)_infinite] opacity-20" />
+          <div className="w-48 h-48 rounded-full border border-white/[0.03] animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite] opacity-30 delay-700" />
         </div>
-        <h2 className="text-xl font-medium text-gray-300 mb-2 tracking-tight">No Analysis Data</h2>
-        <p className="text-gray-500 text-center max-w-sm text-sm leading-relaxed">
-          Submit your PR URL or code snippet to receive comprehensive AI engineering insights.
+        
+        <div className="p-4 rounded-full bg-white/[0.03] mb-6 group-hover:scale-105 transition-transform duration-500 relative z-10 border border-white/[0.05]">
+          <Activity className="w-12 h-12 text-gray-500 group-hover:text-gray-300 transition-colors" />
+        </div>
+        <h2 className="text-xl font-medium text-gray-300 mb-2 tracking-tight relative z-10">Contextual Engine Idle</h2>
+        <p className="text-gray-500 text-center max-w-sm text-sm leading-relaxed relative z-10">
+          Load a PR or paste code to initialize the autonomous AI engineering pipeline.
         </p>
       </div>
     );

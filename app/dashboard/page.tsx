@@ -142,7 +142,7 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-white/[0.01] backdrop-blur-xl">
         <Link href="/" className="flex items-center gap-2 group">
-          <Image src="/logo.png" alt="PRISM AI Logo" width={44} height={44} className="drop-shadow-[0_0_15px_rgba(56,189,248,0.4)] group-hover:drop-shadow-[0_0_25px_rgba(56,189,248,0.6)] transition-shadow" />
+          <Image src="/logo.png" alt="PRISM AI Logo" width={44} height={44} className="drop-shadow-[0_0_10px_rgba(56,189,248,0.2)] group-hover:drop-shadow-[0_0_20px_rgba(56,189,248,0.4)] transition-shadow opacity-90 group-hover:opacity-100" />
           <h1 className="text-xl font-bold tracking-tight text-white">PRISM<span className="text-sky-400 font-light">AI</span></h1>
         </Link>
         
@@ -170,9 +170,9 @@ export default function DashboardPage() {
           </label>
           <button 
             onClick={() => setIsGitHubModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-white/[0.02] hover:bg-white/5 transition-colors text-xs font-medium border border-white/[0.05] hover:border-white/10 text-gray-400 hover:text-gray-300 opacity-90 hover:opacity-100"
           >
-            <GitMerge size={16} /> <span className="hidden sm:inline">Connect GitHub</span>
+            <GitMerge size={14} /> <span className="hidden sm:inline">Connect GitHub</span>
           </button>
         </div>
       </header>
@@ -190,23 +190,24 @@ export default function DashboardPage() {
           {/* Controls Bar */}
           <div className="flex flex-col 2xl:flex-row items-start 2xl:items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
             <div className="flex flex-wrap items-center gap-4 w-full 2xl:w-auto">
-              <div className="relative w-full sm:w-auto">
+              <div className="relative w-full sm:w-auto group">
+                <div className="absolute inset-0 bg-gradient-to-r from-sky-500/10 to-indigo-500/10 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
                 <select
                   value={activeDemo || ''}
                   onChange={handleLoadDemo}
-                  className="appearance-none w-full sm:w-auto bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[160px]"
+                  className="relative appearance-none w-full sm:w-auto bg-black/40 border border-white/10 group-hover:border-white/20 group-hover:shadow-[0_0_15px_rgba(255,255,255,0.05)] text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[160px] bg-gradient-to-b from-white/[0.03] to-transparent"
                 >
                   <option value="">Load Demo PR...</option>
                   {DEMO_EXAMPLES.map(ex => (
                     <option key={ex.id} value={ex.id} className="bg-black text-white">{ex.title}</option>
                   ))}
                 </select>
-                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-gray-200 transition-colors" />
               </div>
 
               <div className="h-px w-full sm:h-6 sm:w-px bg-white/10 hidden sm:block"></div>
 
-              <div className="flex flex-wrap bg-black/50 rounded-xl p-1 border border-white/5 w-full sm:w-auto">
+              <div className="flex flex-nowrap overflow-x-auto custom-scrollbar-hidden bg-black/50 rounded-xl p-1 border border-white/5 w-full sm:w-auto max-w-full">
                 {Object.values(PERSONAS).map(p => {
                   const isActive = persona === p.id;
                   const Icon = ICON_MAP[p.theme.icon];
@@ -214,7 +215,7 @@ export default function DashboardPage() {
                     <button
                       key={p.id}
                       onClick={() => setPersona(p.id)}
-                      className={`relative flex items-center justify-center flex-1 sm:flex-none gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
+                      className={`relative flex items-center justify-center flex-none gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-300 whitespace-nowrap ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
                     >
                       {isActive && (
                         <motion.div layoutId="personaGlow" className={`absolute inset-0 ${p.theme.badgeBg} ${p.theme.glow} rounded-lg border border-${p.theme.color}-500/50`} style={{ zIndex: -1 }} />
@@ -295,6 +296,8 @@ export default function DashboardPage() {
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+        .custom-scrollbar-hidden::-webkit-scrollbar { display: none; }
+        .custom-scrollbar-hidden { -ms-overflow-style: none; scrollbar-width: none; }
       `}} />
     </div>
   );
