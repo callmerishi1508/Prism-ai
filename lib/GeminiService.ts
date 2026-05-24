@@ -776,8 +776,15 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
             console.log('[Gemini Fallback] Flash repair fallback succeeded.');
             return result;
           }
-        } catch (flashErr) {
+        } catch (flashErr: any) {
           console.error('[Gemini Fallback] Flash repair also failed:', flashErr);
+          return {
+            repairedCode: code + '\n// PRISM AI: Autonomous repair temporarily unavailable due to extreme load. Please try again.',
+            summary: ['Service temporarily degraded', 'Fallback mechanism engaged'],
+            riskLevel: 'Low',
+            linesModified: 0,
+            vulnerabilitiesResolved: 0
+          };
         }
       }
 
