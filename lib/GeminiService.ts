@@ -82,6 +82,29 @@ class GeminiService {
       code = code.substring(0, MAX_CODE_LENGTH) + '\n\n// [PRISM AI TRUNCATED]: File exceeds token limits.';
     }
 
+    if (!this.ai && !context.isDemoMode) {
+      return {
+        issues: [
+          {
+            title: 'API Key Configuration Required',
+            severity: 'Critical',
+            line: 1,
+            explanation: 'PRISM AI V2 Enterprise requires a valid Gemini API Key to perform real-time code analysis on custom code. Please add GEMINI_API_KEY to your .env.local file.',
+            suggested_fix: 'GEMINI_API_KEY="AIzaSy..."',
+            confidence: 1.0
+          }
+        ],
+        health_score: 0,
+        merge_recommendation: 'High Risk',
+        confidenceMetrics: {
+          architecture_confidence: 1,
+          analysis_reliability: 1,
+          ambiguity_level: 'Low',
+          manual_review_recommended: true
+        }
+      };
+    }
+
     if (context.isDemoMode || !this.ai) {
       console.log('[Demo Mode] Returning safe mocked response');
       return this.getMockResponse(context.persona, isFixMode);
