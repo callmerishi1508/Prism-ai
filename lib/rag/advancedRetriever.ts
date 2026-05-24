@@ -54,7 +54,7 @@ export async function retrieveAdvancedContext(code: string, maxDocs: number = 2)
     } else {
       console.log('[Embedding Cache Miss] Generating new vector via Gemini API.');
       const embeddingResponse = await ai.models.embedContent({
-        model: 'embedding-001',
+        model: 'text-embedding-004',
         contents: code,
       });
       vector = embeddingResponse.embeddings?.[0]?.values;
