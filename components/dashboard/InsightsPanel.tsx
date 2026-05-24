@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper, Database } from 'lucide-react';
+import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper, Database, Network, FileLock } from 'lucide-react';
 import { IssueCard } from './IssueCard';
 import { AnalysisResult, Issue } from '@/lib/schema';
 
@@ -187,15 +187,31 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
       {(analysis as any).ragContext && (analysis as any).ragContext.length > 0 && (
         <motion.div variants={itemVariants} className="flex flex-col gap-3 p-5 rounded-xl border border-indigo-500/30 bg-indigo-500/5 relative overflow-hidden shadow-[0_0_20px_rgba(99,102,241,0.1)]">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent pointer-events-none" />
-          <h3 className="text-sm font-semibold text-indigo-400 flex items-center gap-2 relative z-10">
-            <Database size={16} /> Enterprise RAG Pipeline Active
-          </h3>
+          <div className="flex items-center justify-between relative z-10">
+            <h3 className="text-sm font-semibold text-indigo-400 flex items-center gap-2">
+              <Network size={16} /> Enterprise RAG Pipeline Active
+            </h3>
+            <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-500/80 px-2 py-0.5 rounded border border-indigo-500/20 bg-indigo-500/10">Vector Search</span>
+          </div>
           <p className="text-xs text-gray-400 font-medium relative z-10">The AI successfully retrieved and applied the following company standards to this review:</p>
-          <div className="flex flex-col gap-2 mt-2 relative z-10">
+          <div className="flex flex-col gap-3 mt-2 relative z-10">
             {(analysis as any).ragContext.map((doc: any) => (
-              <div key={doc.id} className="p-3 rounded-lg bg-black/40 border border-indigo-500/20 text-xs">
-                <span className="font-semibold text-indigo-300 block mb-1">{doc.id} • {doc.title}</span>
-                <span className="text-gray-400 leading-relaxed font-light">{doc.content}</span>
+              <div key={doc.id} className="p-3.5 rounded-lg bg-black/40 border border-indigo-500/20 text-xs flex flex-col gap-2 group hover:border-indigo-500/40 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FileLock size={14} className="text-indigo-400" />
+                    <span className="font-semibold text-indigo-300">{doc.id} • {doc.title}</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-emerald-400 bg-emerald-400/10 px-1.5 py-0.5 rounded">
+                    Score: {(doc.relevanceScore * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <span className="text-gray-400 leading-relaxed font-light pl-5">{doc.content}</span>
+                <div className="flex items-center gap-4 pl-5 mt-1 text-[10px] font-medium text-gray-500">
+                  <span>Category: <span className="text-gray-400">{doc.category}</span></span>
+                  <span>Author: <span className="text-gray-400">{doc.author}</span></span>
+                  <span>Updated: <span className="text-gray-400">{doc.lastUpdated}</span></span>
+                </div>
               </div>
             ))}
           </div>

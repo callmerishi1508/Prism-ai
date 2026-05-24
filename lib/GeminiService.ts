@@ -168,7 +168,10 @@ This issue should be the primary issue returned if a severe mismatch is detected
       // Attach RAG context to the result so the UI can display it
       const finalData = parsedResult.data as any;
       if (retrievedDocs.length > 0 && !isFixMode) {
-        finalData.ragContext = retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content }));
+        finalData.ragContext = retrievedDocs.map(d => ({ 
+          id: d.id, title: d.title, content: d.content,
+          category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore 
+        }));
       }
 
       return finalData;
@@ -237,7 +240,10 @@ This issue should be the primary issue returned if a severe mismatch is detected
         console.log('[Self-Healing] Successfully repaired JSON.');
         const finalData = finalResult.data as any;
         if (retrievedDocs.length > 0 && !isFixMode) {
-          finalData.ragContext = retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content }));
+          finalData.ragContext = retrievedDocs.map(d => ({ 
+            id: d.id, title: d.title, content: d.content,
+            category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
+          }));
         }
         return finalData;
       }
@@ -264,7 +270,10 @@ This issue should be the primary issue returned if a severe mismatch is detected
     };
 
     const retrievedDocs = retrieveContext(code, language);
-    const ragContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content })) : undefined;
+    const ragContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ 
+      id: d.id, title: d.title, content: d.content,
+      category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
+    })) : undefined;
 
     // Smart Mock Engine: Check if this is custom code
     const isDefaultTemplate = Object.values(DEMO_EXAMPLES).some(ex => ex.code.trim() === code.trim());
