@@ -21,7 +21,12 @@ export const AnalysisResultSchema = z.object({
   health_score: z.number().min(0).max(100).optional().describe('Overall codebase health score (0 to 100)'),
   merge_recommendation: z.string().describe('Final merge recommendation'),
   confidenceMetrics: ConfidenceMetricsSchema.optional().describe('AI calibration of its own confidence'),
-  promptVersion: z.string().optional()
+  promptVersion: z.string().optional(),
+  ragContext: z.array(z.object({
+    id: z.string(),
+    title: z.string(),
+    content: z.string()
+  })).optional().describe('Retrieved documentation or context used for analysis')
 });
 
 export const FixResultSchema = z.object({

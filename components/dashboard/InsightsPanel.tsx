@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper } from 'lucide-react';
+import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper, Database } from 'lucide-react';
 import { IssueCard } from './IssueCard';
 import { AnalysisResult, Issue } from '@/lib/schema';
 
@@ -182,6 +182,25 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
           {severityCount['Medium'] > 0 && <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.8)]"></span>{severityCount['Medium']} Med</span>}
         </div>
       </motion.div>
+
+      {/* RAG Context Display */}
+      {(analysis as any).ragContext && (analysis as any).ragContext.length > 0 && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-3 p-5 rounded-xl border border-indigo-500/30 bg-indigo-500/5 relative overflow-hidden shadow-[0_0_20px_rgba(99,102,241,0.1)]">
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent pointer-events-none" />
+          <h3 className="text-sm font-semibold text-indigo-400 flex items-center gap-2 relative z-10">
+            <Database size={16} /> Enterprise RAG Pipeline Active
+          </h3>
+          <p className="text-xs text-gray-400 font-medium relative z-10">The AI successfully retrieved and applied the following company standards to this review:</p>
+          <div className="flex flex-col gap-2 mt-2 relative z-10">
+            {(analysis as any).ragContext.map((doc: any) => (
+              <div key={doc.id} className="p-3 rounded-lg bg-black/40 border border-indigo-500/20 text-xs">
+                <span className="font-semibold text-indigo-300 block mb-1">{doc.id} • {doc.title}</span>
+                <span className="text-gray-400 leading-relaxed font-light">{doc.content}</span>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Issues List */}
       <div className="flex flex-col gap-4 mt-2">

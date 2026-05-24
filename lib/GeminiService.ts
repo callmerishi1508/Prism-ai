@@ -6,6 +6,7 @@
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getPersonaPrompt, PersonaId } from './personas';
 import { AnalysisResultSchema, FixResultSchema } from './schema';
+import { retrieveContext } from './rag/retriever';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const MAX_CODE_LENGTH = 50000; // ~15k tokens guardrail
@@ -107,11 +108,22 @@ class GeminiService {
 
     if (context.isDemoMode || !this.ai) {
       console.log('[Demo Mode] Returning safe mocked response');
-      return this.getMockResponse(context.persona, isFixMode);
+      return this.getMockResponse(context.persona, isFixMode, code, context.language || '');
+    }
+
+    // --- RAG PIPELINE EXECUTOR ---
+    const retrievedDocs = retrieveContext(code, context.language || '');
+    let ragPromptAddition = '';
+    
+    if (retrievedDocs.length > 0) {
+      ragPromptAddition = `\n\n[COMPANY KNOWLEDGE BASE (RAG CONTEXT)]
+The following engineering standards were automatically retrieved from the company vector database based on the user's code. 
+You MUST heavily weigh these guidelines during your review:
+${retrievedDocs.map(doc => `--- DOCUMENT ID: ${doc.id} ---\nTitle: ${doc.title}\nContent: ${doc.content}\n`).join('\n')}`;
     }
 
     const systemInstruction = `
-${getPersonaPrompt(context.persona)}
+${getPersonaPrompt(context.persona)}${ragPromptAddition}
 
 You are operating on PRISM AI V2. 
 You must output strictly matching the provided JSON schema. Ensure your "confidenceMetrics" accurately reflect your certainty in the code analysis.
@@ -148,10 +160,17 @@ This issue should be the primary issue returned if a severe mismatch is detected
       
       if (!parsedResult.success) {
         console.error('[Zod Validation Failed] Attempting Self-Healing...', parsedResult.error);
-        return await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode);
+        const healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs);
+        return healed;
       }
 
-      return parsedResult.data;
+      // Attach RAG context to the result so the UI can display it
+      const finalData = parsedResult.data as any;
+      if (retrievedDocs.length > 0 && !isFixMode) {
+        finalData.ragContext = retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content }));
+      }
+
+      return finalData;
 
     } catch (error: any) {
       CleanUp.logError('[GeminiService] Analysis failed', error);
@@ -188,11 +207,11 @@ This issue should be the primary issue returned if a severe mismatch is detected
         };
       }
 
-      return this.getMockResponse(context.persona, isFixMode);
+      return this.getMockResponse(context.persona, isFixMode, code, context.language || '');
     }
   }
 
-  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId, isFixMode: boolean) {
+  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId, isFixMode: boolean, retrievedDocs: any[] = []) {
     if (!this.ai) return this.getMockResponse(persona, isFixMode);
 
     try {
@@ -215,7 +234,11 @@ This issue should be the primary issue returned if a severe mismatch is detected
       const finalResult = TargetSchema.safeParse(repairedJson);
       if (finalResult.success) {
         console.log('[Self-Healing] Successfully repaired JSON.');
-        return finalResult.data;
+        const finalData = finalResult.data as any;
+        if (retrievedDocs.length > 0 && !isFixMode) {
+          finalData.ragContext = retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content }));
+        }
+        return finalData;
       }
       throw new Error("Self-healing validation failed.");
     } catch (e) {
@@ -224,7 +247,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
     }
   }
 
-  getMockResponse(persona: PersonaId, isFixMode: boolean = false) {
+  getMockResponse(persona: PersonaId, isFixMode: boolean = false, code: string = '', language: string = '') {
     if (isFixMode) {
       return {
         fixed_code: '// Optimized and fixed code\nconst safeValue = "fixed";',
@@ -239,6 +262,9 @@ This issue should be the primary issue returned if a severe mismatch is detected
       manual_review_recommended: false
     };
 
+    const retrievedDocs = retrieveContext(code, language);
+    const ragContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content })) : undefined;
+
     if (persona === 'security') {
       return {
         issues: [
@@ -247,7 +273,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
         health_score: 40,
         merge_recommendation: 'High Risk',
         confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
-        promptVersion: 'v2.0'
+        promptVersion: 'v2.0',
+        ragContext
       };
     }
     if (persona === 'performance') {
@@ -258,7 +285,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
         health_score: 65,
         merge_recommendation: 'Needs Changes',
         confidenceMetrics: defaultConfidence,
-        promptVersion: 'v2.0'
+        promptVersion: 'v2.0',
+        ragContext
       };
     }
     
@@ -270,7 +298,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
       health_score: 82,
       merge_recommendation: 'Safe to Merge',
       confidenceMetrics: defaultConfidence,
-      promptVersion: 'v2.0'
+      promptVersion: 'v2.0',
+      ragContext
     };
   }
 }
