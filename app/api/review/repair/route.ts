@@ -10,8 +10,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing required fields (code, issues, persona)' }, { status: 400 });
     }
 
-    const aiEngine = new AIEngine();
-    const result = await aiEngine.generateRepairedVersion(code, issues, persona, language, customApiKey);
+    const result = await AIEngine.generateRepairedVersion(code, issues, persona, language, customApiKey);
 
     return NextResponse.json(result);
   } catch (error: any) {
