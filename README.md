@@ -1,8 +1,7 @@
 <div align="center">
   <img src="public/logo.png" alt="PRISM AI Logo" width="120" />
-  
   <h1 align="center">PRISM AI</h1>
-  <p align="center"><strong>Your Autonomous Senior Engineering Teammate</strong></p>
+  <p align="center"><strong>Enterprise-Grade Autonomous Senior Engineering Teammate</strong></p>
   
   <p align="center">
     <a href="#features">Features</a> •
@@ -20,11 +19,7 @@
   </p>
 </div>
 
-<br />
-
-
-
-> **Hackathon Winner Edition**: Built to seamlessly handle edge cases, rate limits, and provide a cinematic code-review experience.
+> **PRISM AI** is an advanced AI infrastructure platform built to handle enterprise edge cases, rate limits, and provide a cinematic, highly technical code-review experience.
 
 ![PRISM AI Dashboard Placeholder](https://placehold.co/1200x600/0a0a0a/38bdf8/png?text=PRISM+AI+Dashboard+-+Cinematic+AI+Code+Review)
 

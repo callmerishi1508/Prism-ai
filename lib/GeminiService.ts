@@ -16,6 +16,8 @@ const MAX_CODE_LENGTH = 50000; // ~15k tokens guardrail
 
 export const CleanUp = { logError: (msg: string, error: any) => { console.error(msg, error); } };
 
+const responseCache = new Map<string, any>();
+
 class GeminiService {
   private ai: GoogleGenAI | null;
 
@@ -180,6 +182,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
       if (!parsedResult.success) {
         console.error('[Zod Validation Failed] Attempting Self-Healing...', parsedResult.error);
         const healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs);
+        responseCache.set(cacheKey, healed);
         return healed;
       }
 
@@ -290,8 +293,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
           }));
         }
         
-      responseCache.set(cacheKey, finalData);
-      return finalData;
+        return finalData;
       }
       throw new Error("Self-healing validation failed.");
     } catch (e) {
