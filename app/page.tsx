@@ -44,7 +44,7 @@ export default function Home() {
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-xs font-semibold tracking-wide uppercase mb-8 shadow-[0_0_20px_rgba(56,189,248,0.15)]"
           >
-            <Sparkles size={14} /> Hackathon Winner Edition
+            <Sparkles size={14} /> V2 Enterprise Edition
           </motion.div>
 
           <h1 className="text-6xl sm:text-7xl font-extrabold text-white leading-[1.1] mb-6 tracking-tight">
