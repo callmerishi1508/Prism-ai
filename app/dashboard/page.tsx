@@ -60,17 +60,23 @@ const DEFAULT_CODE = LANGUAGE_TEMPLATES['javascript'];
 export default function DashboardPage() {
   const [code, setCode] = useState(DEFAULT_CODE);
   const [language, setLanguageState] = useState('javascript');
+  const [persona, setPersona] = useState<PersonaId>('cto');
+  const [isDemoMode, setIsDemoMode] = useState(false);
+
+  // Wrapper around setCode to automatically disable demo mode when user types
+  const setCode = (newCode: string) => {
+    setCodeState(newCode);
+    setIsDemoMode(false);
+  };
 
   const setLanguage = (newLang: string) => {
     // If the current code is one of our default templates, swap it to the new language's template
     const isCurrentCodeDefault = Object.values(LANGUAGE_TEMPLATES).includes(code) || code === DEFAULT_CODE || code.trim() === '';
     setLanguageState(newLang);
     if (isCurrentCodeDefault && LANGUAGE_TEMPLATES[newLang]) {
-      setCode(LANGUAGE_TEMPLATES[newLang]);
+      setCodeState(LANGUAGE_TEMPLATES[newLang]);
     }
   };
-  const [persona, setPersona] = useState<PersonaId>('cto');
-  const [isDemoMode, setIsDemoMode] = useState(true);
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
 
   const [latencyMs, setLatencyMs] = useState<number | undefined>();
@@ -101,9 +107,11 @@ export default function DashboardPage() {
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const ex = DEMO_EXAMPLES.find(x => x.id === e.target.value);
     if (ex) {
-      setCode(ex.code);
-      setLanguage(ex.language);
+      setCodeState(ex.code);
+      setLanguageState(ex.language);
       setPersona(ex.idealPersona);
+      setIsDemoMode(true); // Turn demo mode ON explicitly when loading a demo example
+      handleAnalyze(ex.code, true);
     }
   };
 
