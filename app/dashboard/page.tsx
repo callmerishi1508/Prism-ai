@@ -21,10 +21,37 @@ const ICON_MAP: Record<string, React.ElementType> = {
 
 const LANGUAGE_TEMPLATES: Record<string, string> = {
   javascript: `// Welcome to PRISM AI\n// Paste your JS code here for an instant AI review.\n\nfunction processUserData(user) {\n  const query = "SELECT * FROM users WHERE id = " + user.id;\n  db.execute(query);\n  return [];\n}`,
-  python: `# Welcome to PRISM AI\n# Paste your Python code here for an instant AI review.\n\ndef process_user_data(user):\n    query = "SELECT * FROM users WHERE id = " + str(user.id)\n    db.execute(query)\n    return []`,
-  c: `// Welcome to PRISM AI\n// Paste your C code here.\n\n#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}`,
-  cpp: `// Welcome to PRISM AI\n// Paste your C++ code here.\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello World" << std::endl;\n    return 0;\n}`,
-  go: `// Welcome to PRISM AI\n// Paste your Go code here.\n\npackage main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello World")\n}`
+  typescript: `// Welcome to PRISM AI\n// Paste your TS code here...\n\nfunction processUserData(user: any): any[] {\n  const query = \`SELECT * FROM users WHERE id = \${user.id}\`;\n  db.execute(query);\n  return [];\n}`,
+  python: `# Welcome to PRISM AI\n# Paste your Python code here...\n\ndef process_user_data(user):\n    query = f"SELECT * FROM users WHERE id = {user.id}"\n    db.execute(query)\n    return []`,
+  java: `// Welcome to PRISM AI\n\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello World");\n    }\n}`,
+  c: `// Welcome to PRISM AI\n\n#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}`,
+  cpp: `// Welcome to PRISM AI\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello World" << std::endl;\n    return 0;\n}`,
+  csharp: `// Welcome to PRISM AI\n\nusing System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello World");\n    }\n}`,
+  go: `// Welcome to PRISM AI\n\npackage main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello World")\n}`,
+  rust: `// Welcome to PRISM AI\n\nfn main() {\n    println!("Hello World");\n}`,
+  swift: `// Welcome to PRISM AI\n\nprint("Hello World")`,
+  kotlin: `// Welcome to PRISM AI\n\nfun main() {\n    println("Hello World")\n}`,
+  php: `<?php\n// Welcome to PRISM AI\n\necho "Hello World";\n?>`,
+  ruby: `# Welcome to PRISM AI\n\nputs "Hello World"`,
+  scala: `// Welcome to PRISM AI\n\nobject Main extends App {\n  println("Hello World")\n}`,
+  dart: `// Welcome to PRISM AI\n\nvoid main() {\n  print('Hello World');\n}`,
+  r: `# Welcome to PRISM AI\n\nprint("Hello World")`,
+  'objective-c': `// Welcome to PRISM AI\n\n#import <Foundation/Foundation.h>\n\nint main(int argc, const char * argv[]) {\n    @autoreleasepool {\n        NSLog(@"Hello World");\n    }\n    return 0;\n}`,
+  lua: `-- Welcome to PRISM AI\n\nprint("Hello World")`,
+  perl: `# Welcome to PRISM AI\n\nprint "Hello World\\n";`,
+  sql: `-- Welcome to PRISM AI\n\nSELECT * FROM users LIMIT 10;`,
+  graphql: `# Welcome to PRISM AI\n\nquery {\n  users {\n    id\n    name\n  }\n}`,
+  shell: `# Welcome to PRISM AI\n\necho "Hello World"`,
+  powershell: `# Welcome to PRISM AI\n\nWrite-Host "Hello World"`,
+  html: `<!-- Welcome to PRISM AI -->\n\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Hello</title>\n</head>\n<body>\n  <h1>Hello World</h1>\n</body>\n</html>`,
+  css: `/* Welcome to PRISM AI */\n\nbody {\n  margin: 0;\n  padding: 0;\n}`,
+  scss: `/* Welcome to PRISM AI */\n\n$primary-color: #333;\nbody {\n  color: $primary-color;\n}`,
+  json: `{\n  "message": "Welcome to PRISM AI"\n}`,
+  yaml: `# Welcome to PRISM AI\n\nmessage: "Hello World"`,
+  xml: `<!-- Welcome to PRISM AI -->\n\n<root>\n  <message>Hello World</message>\n</root>`,
+  markdown: `# Welcome to PRISM AI\n\nWrite your markdown here.`,
+  dockerfile: `# Welcome to PRISM AI\n\nFROM ubuntu:latest\nRUN echo "Hello World"`,
+  solidity: `// Welcome to PRISM AI\n\npragma solidity ^0.8.0;\n\ncontract HelloWorld {\n    string public message = "Hello World";\n}`
 };
 
 const DEFAULT_CODE = LANGUAGE_TEMPLATES['javascript'];
