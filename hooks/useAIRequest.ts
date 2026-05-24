@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 export interface AIRequestState<T> {
   data: T | null;
@@ -18,9 +18,11 @@ export function useAIRequest<T>(endpoint: string, options?: UseAIRequestOptions<
     isLoading: false,
     error: null,
   });
+  const activeRequestId = useRef<number>(0);
 
   const execute = useCallback(
     async (payload: any, customOptions?: { retries?: number }) => {
+      const requestId = ++activeRequestId.current;
       setState((prev) => ({ ...prev, isLoading: true, error: null }));
       
       const maxRetries = customOptions?.retries ?? options?.retries ?? 0;
@@ -43,6 +45,8 @@ export function useAIRequest<T>(endpoint: string, options?: UseAIRequestOptions<
           }
 
           const result = await response.json();
+          if (activeRequestId.current !== requestId) return result; // Ignore stale request
+          
           setState({ data: result, isLoading: false, error: null });
           
           if (options?.onSuccess) {
@@ -59,6 +63,8 @@ export function useAIRequest<T>(endpoint: string, options?: UseAIRequestOptions<
         }
       }
 
+      if (activeRequestId.current !== requestId) return; // Ignore stale request
+      
       const errorMsg = lastError?.message || 'An unexpected error occurred';
       setState({ data: null, isLoading: false, error: errorMsg });
       

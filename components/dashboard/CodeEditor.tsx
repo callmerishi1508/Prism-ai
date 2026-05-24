@@ -50,16 +50,8 @@ const SUPPORTED_LANGUAGES = [
 export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const [currentLang, setCurrentLang] = useState(language);
-
-  // Sync internal state with props if parent changes it (e.g. via load demo)
-  React.useEffect(() => {
-    setCurrentLang(language);
-  }, [language]);
-
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value;
-    setCurrentLang(newLang);
     if (onLanguageChange) {
       onLanguageChange(newLang);
     }
@@ -91,7 +83,7 @@ export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeE
       <div className="flex items-center justify-between px-4 py-2 bg-white/5 border-b border-white/10 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <select
-            value={currentLang}
+            value={language}
             onChange={handleLanguageChange}
             className="bg-transparent text-gray-300 text-sm outline-none cursor-pointer hover:text-white transition-colors ml-4"
           >
@@ -125,7 +117,7 @@ export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeE
       <div className="flex-1 relative w-full h-full">
         <Editor
           height="100%"
-          language={currentLang}
+          language={language}
           theme="vs-dark"
           value={code}
           onChange={handleEditorChange}

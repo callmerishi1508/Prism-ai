@@ -10,6 +10,7 @@ interface InsightsPanelProps {
   analysis: AnalysisResult | null;
   isLoading?: boolean;
   activePersona?: any;
+  error?: string | null;
 }
 
 // Cinematic stagger for demo wow-factor
@@ -26,9 +27,10 @@ const itemVariants: Variants = {
   show: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { type: 'spring', stiffness: 200, damping: 20 } }
 };
 
-export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPanelProps) {
-  // Staged AI Reasoning Simulation
-  const loadingStates = ["Analyzing architecture...", "Scanning vulnerabilities...", "Evaluating performance...", "Generating insights..."];
+// Staged AI Reasoning Simulation
+const loadingStates = ["Analyzing architecture...", "Scanning vulnerabilities...", "Evaluating performance...", "Generating insights..."];
+
+export function InsightsPanel({ analysis, isLoading, activePersona, error }: InsightsPanelProps) {
   const [loadingStep, setLoadingStep] = useState(0);
 
   useEffect(() => {
@@ -63,6 +65,31 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
           </AnimatePresence>
         </div>
       </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex-1 w-full h-full min-h-[500px] flex items-center justify-center border border-red-500/20 bg-[#050505] rounded-2xl relative overflow-hidden shadow-[0_0_30px_rgba(239,68,68,0.05)]"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(239,68,68,0.05),transparent_70%)]" />
+        <div className="flex flex-col items-center gap-4 relative z-10 p-8 text-center max-w-md">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2 animate-pulse">
+            <ServerCrash className="text-red-400 w-8 h-8" />
+          </div>
+          <h2 className="text-xl font-medium text-red-300">Analysis Interrupted</h2>
+          <p className="text-gray-400 text-sm">
+            {error}
+          </p>
+          <div className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2">
+             <AlertTriangle size={14} className="text-yellow-500" />
+             <span className="text-xs text-gray-400">The autonomous engine encountered network instability. Please retry.</span>
+          </div>
+        </div>
+      </motion.div>
     );
   }
 
@@ -213,7 +240,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
                     Score: {(doc.relevanceScore * 100).toFixed(1)}%
                   </span>
                 </div>
-                <span className="text-gray-400 leading-relaxed font-light pl-5">{doc.content}</span>
+                <span className="text-gray-400 leading-relaxed font-light pl-5 break-words whitespace-pre-wrap">{doc.content}</span>
                 <div className="flex items-center gap-4 pl-5 mt-1 text-[10px] font-medium text-gray-500">
                   <span>Category: <span className="text-gray-400">{doc.category}</span></span>
                   <span>Author: <span className="text-gray-400">{doc.author}</span></span>

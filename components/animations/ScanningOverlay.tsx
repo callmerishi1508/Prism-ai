@@ -16,6 +16,19 @@ const loadingTexts = [
 
 export default function ScanningOverlay({ visible }: ScanningOverlayProps) {
   const [textIndex, setTextIndex] = useState(0);
+  const [particles, setParticles] = useState<any[]>([]);
+
+  useEffect(() => {
+    if (visible && particles.length === 0) {
+      setParticles(Array.from({ length: 20 }).map(() => ({
+        x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
+        y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
+        yAnim: Math.random() * -200,
+        duration: Math.random() * 3 + 2,
+        delay: Math.random() * 2
+      })));
+    }
+  }, [visible, particles.length]);
 
   useEffect(() => {
     if (visible) {
@@ -65,23 +78,23 @@ export default function ScanningOverlay({ visible }: ScanningOverlayProps) {
 
           {/* Floating Particles */}
           <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            {Array.from({ length: 20 }).map((_, i) => (
+            {particles.map((p, i) => (
               <motion.div
                 key={i}
                 className="absolute w-1 h-1 bg-white rounded-full opacity-20"
                 initial={{
-                  x: Math.random() * (typeof window !== 'undefined' ? window.innerWidth : 1000),
-                  y: Math.random() * (typeof window !== 'undefined' ? window.innerHeight : 1000),
+                  x: p.x,
+                  y: p.y,
                 }}
                 animate={{
-                  y: [null, Math.random() * -200],
+                  y: [null, p.yAnim],
                   opacity: [0.2, 0.8, 0],
                 }}
                 transition={{
-                  duration: Math.random() * 3 + 2,
+                  duration: p.duration,
                   repeat: Infinity,
                   ease: 'linear',
-                  delay: Math.random() * 2,
+                  delay: p.delay,
                 }}
               />
             ))}

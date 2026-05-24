@@ -290,7 +290,7 @@ export default function DashboardPage() {
 
         {/* Right Column (Insights) */}
         <div className="w-full lg:w-1/2 lg:h-full lg:overflow-y-auto overflow-x-hidden lg:pr-2 custom-scrollbar pb-10">
-          <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} />
+          <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} error={error} />
         </div>
       </main>
 
