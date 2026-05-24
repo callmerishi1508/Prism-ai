@@ -187,7 +187,7 @@ export default function DashboardPage() {
       <main className="relative z-10 flex gap-6 p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
         
         {/* Left Column (Code & Controls) */}
-        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto pr-2 custom-scrollbar">
+        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
             <div className="flex items-center gap-4">
@@ -286,7 +286,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column (Insights) */}
-        <div className="w-1/2 h-full overflow-y-auto pr-2 custom-scrollbar pb-10">
+        <div className="w-1/2 h-full overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar pb-10">
           <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} />
         </div>
       </main>
