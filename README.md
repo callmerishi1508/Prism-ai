@@ -5,7 +5,6 @@
   <p align="center"><strong>Your Autonomous Senior Engineering Teammate</strong></p>
   
   <p align="center">
-    <a href="#about">About</a> •
     <a href="#features">Features</a> •
     <a href="#personas">AI Personas</a> •
     <a href="#packages">Tech Stack & Packages</a> •
@@ -23,13 +22,7 @@
 
 <br />
 
-<a id="about"></a>
-## 📖 About
 
-**PRISM AI** is an intelligent, autonomous code review engine built for the AI Hackathon for Builders. It acts as a senior engineering teammate that instantly analyzes pull requests, detects zero-day vulnerabilities, optimizes algorithmic performance, and enforces architectural excellence.
-
-* **Website**: [https://prism-ai-demo.vercel.app](https://prism-ai-demo.vercel.app) *(Replace with your live deployment link)*
-* **Topics**: `nextjs`, `ai`, `gemini-api`, `code-review`, `rag`, `pinecone`, `typescript`, `hackathon`, `developer-tools`
 
 > **Hackathon Winner Edition**: Built to seamlessly handle edge cases, rate limits, and provide a cinematic code-review experience.
 
