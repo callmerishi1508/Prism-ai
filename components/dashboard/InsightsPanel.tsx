@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, Variants } from 'framer-motion';
-import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper, Database, Network, FileLock, Github } from 'lucide-react';
+import { Activity, ShieldAlert, Zap, TrendingUp, ChevronRight, CheckCircle2, ServerCrash, AlertTriangle, Download, Copy, FileText, PartyPopper, Database, Network, FileLock, Send } from 'lucide-react';
 import { IssueCard } from './IssueCard';
 import { AnalysisResult, Issue } from '@/lib/schema';
 
@@ -234,7 +234,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona }: InsightsPa
               onClick={() => alert("Simulated: Successfully posted AI Review Comments and Suggested Fixes directly to the GitHub Pull Request timeline!")}
               className="flex items-center gap-1.5 px-2.5 py-1.5 bg-[#238636] hover:bg-[#2ea043] rounded-md border border-[rgba(240,246,252,0.1)] transition-all text-white shadow-sm" title="Post Review to GitHub PR"
             >
-              <Github size={14} />
+              <Send size={14} />
               <span className="text-xs font-semibold">Post to PR</span>
             </button>
             <button className="p-1.5 bg-white/5 hover:bg-white/10 rounded-md border border-white/5 transition-all text-gray-400 hover:text-white" title="Copy Review Summary">

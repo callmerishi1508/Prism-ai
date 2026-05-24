@@ -44,7 +44,7 @@ export async function retrieveAdvancedContext(code: string, maxDocs: number = 2)
     // 1. Generate Embeddings for the incoming code snippet
     // We use the Gemini text-embedding model to understand the semantic meaning of the code
     const embeddingResponse = await ai.models.embedContent({
-      model: 'text-embedding-004',
+      model: 'embedding-001',
       contents: code,
     });
     
