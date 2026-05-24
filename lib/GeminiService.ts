@@ -279,9 +279,10 @@ This issue should be the primary issue returned if a severe mismatch is detected
       category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore
     })) : undefined;
 
-    // Smart Mock Engine: Check if this is custom code
-    const isDefaultTemplate = Object.values(DEMO_EXAMPLES).some(ex => ex.code.trim() === code.trim());
-    if (!isDefaultTemplate && code.trim() !== '') {
+    // Smart Mock Engine: Check if this is custom code or a specific Demo PR
+    const matchedDemo = DEMO_EXAMPLES.find(ex => ex.code.trim() === code.trim());
+    
+    if (!matchedDemo && code.trim() !== '') {
       return {
         issues: [
           { title: 'Custom Code in Demo Mode', severity: 'Low', line: 1, explanation: 'You are currently running in **Demo Mode**, which only returns hardcoded mock responses for the built-in Demo PRs.\n\nTo analyze your own custom code, please **Turn OFF Demo Mode** (toggle in the top right).', suggested_fix: 'Turn Demo Mode OFF to connect to the real Gemini AI Engine.', confidence: 1.0 }
@@ -294,7 +295,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
       };
     }
 
-    if (persona === 'security') {
+    // Return the appropriate mock based on which Demo PR was loaded
+    if (matchedDemo?.id === 'sql-injection') {
       return {
         issues: [
           { title: 'SQL Injection Vulnerability', severity: 'Critical', line: 7, explanation: 'Concatenating user input directly into a SQL query exposes the system to injection attacks. This must be fixed immediately using prepared statements.', suggested_fix: 'const query = "SELECT * FROM users WHERE id = ?";\ndb.execute(query, [userId]);', confidence: 0.99 }
@@ -306,7 +308,8 @@ This issue should be the primary issue returned if a severe mismatch is detected
         ragContext
       };
     }
-    if (persona === 'performance') {
+    
+    if (matchedDemo?.id === 'nested-loops') {
       return {
         issues: [
           { title: 'O(N^2) Complexity detected', severity: 'High', line: 5, explanation: 'Nested loops over the same transactions array will cause severe CPU bottlenecks as the payload scales. Please optimize using a Hash Map or Set.', suggested_fix: 'const seen = new Set();\nfor(const t of user.transactions) {\n  if(!seen.has(t.id)) {\n    processed.push(t);\n    seen.add(t.id);\n  }\n}', confidence: 0.95 }
@@ -318,7 +321,51 @@ This issue should be the primary issue returned if a severe mismatch is detected
         ragContext
       };
     }
+
+    if (matchedDemo?.id === 'unsafe-auth') {
+      return {
+        issues: [
+          { title: 'Plaintext Password Storage', severity: 'Critical', line: 8, explanation: 'Never compare raw passwords. Use bcrypt or Argon2 to hash passwords securely.', suggested_fix: 'const isValid = await bcrypt.compare(password, user.passwordHash);', confidence: 0.99 },
+          { title: 'Insecure Token Generation', severity: 'High', line: 11, explanation: 'Math.random() is not cryptographically secure for generating session tokens.', suggested_fix: 'const token = crypto.randomBytes(32).toString("hex");', confidence: 0.95 },
+          { title: 'Timing Attack Vulnerability', severity: 'Medium', line: 18, explanation: 'Returning different error messages for "User not found" and "Incorrect password" enables user enumeration. Use a generic error message.', suggested_fix: 'return { success: false, error: "Invalid credentials" };', confidence: 0.90 }
+        ],
+        health_score: 10,
+        merge_recommendation: 'Do Not Merge',
+        confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
+        promptVersion: 'v2.0',
+        ragContext
+      };
+    }
+
+    if (matchedDemo?.id === 'missing-async-error') {
+      return {
+        issues: [
+          { title: 'Missing Error Handling in Async useEffect', severity: 'High', line: 8, explanation: 'Promises inside useEffect must have try/catch blocks to prevent unhandled rejections from crashing the component.', suggested_fix: 'try {\n  const result = await fetchUserData(userId);\n  setData(result);\n} catch (e) {\n  setError(e);\n}', confidence: 0.98 },
+          { title: 'No Cleanup Function', severity: 'Medium', line: 16, explanation: 'Missing a cleanup function to cancel the fetch request if the component unmounts or userId changes quickly.', suggested_fix: 'return () => { abortController.abort(); }', confidence: 0.85 }
+        ],
+        health_score: 60,
+        merge_recommendation: 'Needs Changes',
+        confidenceMetrics: defaultConfidence,
+        promptVersion: 'v2.0',
+        ragContext
+      };
+    }
+
+    if (matchedDemo?.id === 'pydantic-validation') {
+      return {
+        issues: [
+          { title: 'Missing Pydantic Guardrails', severity: 'Critical', line: 8, explanation: 'Directly parsing `request.json()` without schema validation opens the endpoint to arbitrary payload injection. Use a Pydantic BaseModel.', suggested_fix: 'class UserUpdate(BaseModel):\n    user_id: int\n    email: EmailStr\n\n@app.post("/api/v1/update_profile")\nasync def update_profile(data: UserUpdate):', confidence: 0.99 },
+          { title: 'SQL Injection Risk', severity: 'High', line: 15, explanation: 'The email field is directly interpolated into the SQL query without sanitization.', suggested_fix: 'db.execute("UPDATE users SET email = :email WHERE id = :user_id", {"email": data.email, "user_id": data.user_id})', confidence: 0.95 }
+        ],
+        health_score: 25,
+        merge_recommendation: 'High Risk',
+        confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
+        promptVersion: 'v2.0',
+        ragContext
+      };
+    }
     
+    // Fallback Mock for everything else
     return {
       issues: [
         { title: 'No Input Validation', severity: 'Medium', line: 4, explanation: 'We should probably validate the user object before querying the database to prevent unhandled errors from breaking the flow.', suggested_fix: 'if (!user || !user.id) return [];', confidence: 0.85 },
