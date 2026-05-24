@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://via.placeholder.com/150/000000/FFFFFF?text=PRISM+AI" alt="PRISM AI Logo" width="120" />
+  <img src="https://placehold.co/150x150/000000/FFFFFF/png?text=PRISM+AI" alt="PRISM AI Logo" width="120" />
   
   <h1 align="center">PRISM AI</h1>
   <p align="center"><strong>Your Autonomous Senior Engineering Teammate</strong></p>
@@ -26,7 +26,7 @@
 
 > **Hackathon Winner Edition**: Built to seamlessly handle edge cases, rate limits, and provide a cinematic code-review experience.
 
-![PRISM AI Dashboard Placeholder](https://via.placeholder.com/1200x600/0a0a0a/38bdf8?text=PRISM+AI+Dashboard+-+Cinematic+AI+Code+Review)
+![PRISM AI Dashboard Placeholder](https://placehold.co/1200x600/0a0a0a/38bdf8/png?text=PRISM+AI+Dashboard+-+Cinematic+AI+Code+Review)
 
 ## 🚀 Features
 
