@@ -695,17 +695,22 @@ When encountering what appears to be an "Undefined Variable", explicitly conside
   public async generateRepairedVersion(
     code: string,
     issues: any[],
-    context: { persona: PersonaId, language?: string, customApiKey?: string }
+    context: { persona: PersonaId, language?: string, customApiKey?: string, isAlternative?: boolean, previousRepairedCode?: string }
   ): Promise<RepairedVersionResult> {
     if (!code || code.trim() === '') {
       throw new Error('Code is required for generating a repaired version.');
     }
+
+    const alternativeInstruction = context.isAlternative 
+      ? `\nCRITICAL INSTRUCTION: The user has REJECTED the previous repair attempt. You must provide a DIFFERENT, alternative architectural approach or fix strategy. Avoid making the same changes as the previous attempt.`
+      : '';
 
     const systemInstruction = `
 ${getPersonaPrompt(context.persona)}
 
 You are operating on PRISM AI V2 as an Autonomous Refactoring Agent.
 Your objective is to generate a fully repaired, production-ready version of the codebase based on the provided original code and the array of identified issues.
+${alternativeInstruction}
 
 CRITICAL ARCHITECTURAL CONSTRAINTS:
 1. Do NOT rewrite unrelated architecture.
@@ -721,17 +726,19 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
 
     const activeAi = context.customApiKey ? new GoogleGenAI({ apiKey: context.customApiKey }) : (this.ai || new GoogleGenAI({ apiKey: API_KEY }));
 
+    const promptText = `Original Code:\n\n${code}\n\nIdentified Issues:\n\n${JSON.stringify(issues, null, 2)}${context.previousRepairedCode ? `\n\nPrevious Rejected Repair Attempt:\n\n${context.previousRepairedCode}` : ''}`;
+
     try {
       const response = await activeAi.models.generateContent({
         model: 'gemini-2.5-pro',
         contents: [
-          { role: 'user', parts: [{ text: `Original Code:\n\n${code}\n\nIdentified Issues:\n\n${JSON.stringify(issues, null, 2)}` }] }
+          { role: 'user', parts: [{ text: promptText }] }
         ],
         config: {
           systemInstruction: systemInstruction,
           responseMimeType: 'application/json',
           responseSchema: this.getRepairedVersionSchema(),
-          temperature: 0.2, // low temp for safe refactoring
+          temperature: context.isAlternative ? 0.7 : 0.2, // Higher temp for alternative approaches
         }
       });
 
@@ -754,13 +761,13 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
           const flashResponse = await activeAi.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: [
-              { role: 'user', parts: [{ text: `Original Code:\n\n${code}\n\nIdentified Issues:\n\n${JSON.stringify(issues, null, 2)}` }] }
+              { role: 'user', parts: [{ text: promptText }] }
             ],
             config: {
               systemInstruction: systemInstruction,
               responseMimeType: 'application/json',
               responseSchema: this.getRepairedVersionSchema(),
-              temperature: 0.2,
+              temperature: context.isAlternative ? 0.7 : 0.2,
             }
           });
 

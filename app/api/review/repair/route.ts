@@ -4,13 +4,13 @@ import AIEngine from '@/lib/AIEngine';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { code, issues, persona, language, customApiKey } = body;
+    const { code, issues, persona, language, customApiKey, isAlternative, previousRepairedCode } = body;
 
     if (!code || !issues || !persona) {
       return NextResponse.json({ error: 'Missing required fields (code, issues, persona)' }, { status: 400 });
     }
 
-    const result = await AIEngine.generateRepairedVersion(code, issues, persona, language, customApiKey);
+    const result = await AIEngine.generateRepairedVersion(code, issues, persona, language, customApiKey, isAlternative, previousRepairedCode);
 
     return NextResponse.json(result);
   } catch (error: any) {

@@ -122,11 +122,14 @@ export default function DashboardPage() {
     handleAnalyze(diff, false);
   };
 
-  const handleGenerateRepair = async () => {
+  const handleGenerateRepair = async (isAlternative: boolean = false) => {
     if (!analysis || !analysis.issues.length) return;
     
     setIsRepairing(true);
-    const messages = ["Synthesizing production-safe revision...", "Applying architectural corrections...", "Rebuilding optimized implementation...", "Validating refactor consistency..."];
+    const messages = isAlternative 
+      ? ["Exploring alternative architectural patterns...", "Synthesizing a different approach...", "Re-evaluating solution space..."] 
+      : ["Synthesizing production-safe revision...", "Applying architectural corrections...", "Rebuilding optimized implementation...", "Validating refactor consistency..."];
+      
     let i = 0;
     const interval = setInterval(() => {
       setRepairProgress(messages[i]);
@@ -144,7 +147,9 @@ export default function DashboardPage() {
           issues: analysis.issues,
           persona,
           language,
-          customApiKey: apiKeyStr || undefined
+          customApiKey: apiKeyStr || undefined,
+          isAlternative,
+          previousRepairedCode: isAlternative ? repairedData?.repairedCode : undefined
         })
       });
 
@@ -280,6 +285,9 @@ export default function DashboardPage() {
           linesModified={repairedData.linesModified}
           vulnerabilitiesResolved={repairedData.vulnerabilitiesResolved}
           onApplyChanges={applyRepairedCode}
+          onRegenerateAlternative={() => handleGenerateRepair(true)}
+          isRepairing={isRepairing}
+          repairProgress={repairProgress}
         />
       )}
 

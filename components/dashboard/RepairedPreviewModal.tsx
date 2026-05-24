@@ -16,6 +16,9 @@ interface RepairedPreviewModalProps {
   linesModified: number;
   vulnerabilitiesResolved: number;
   onApplyChanges: () => void;
+  onRegenerateAlternative?: () => void;
+  isRepairing?: boolean;
+  repairProgress?: string;
 }
 
 export function RepairedPreviewModal({
@@ -28,7 +31,10 @@ export function RepairedPreviewModal({
   riskLevel,
   linesModified,
   vulnerabilitiesResolved,
-  onApplyChanges
+  onApplyChanges,
+  onRegenerateAlternative,
+  isRepairing,
+  repairProgress
 }: RepairedPreviewModalProps) {
   const [copied, setCopied] = useState(false);
 
@@ -174,10 +180,26 @@ export function RepairedPreviewModal({
               </button>
             </div>
             
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {isRepairing && (
+                <div className="flex items-center text-indigo-400 text-sm mr-4">
+                  <div className="w-4 h-4 border-2 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mr-2" />
+                  {repairProgress || "Regenerating..."}
+                </div>
+              )}
+              {onRegenerateAlternative && (
+                <button
+                  onClick={onRegenerateAlternative}
+                  disabled={isRepairing}
+                  className="px-4 py-2 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 rounded-lg transition-colors text-sm font-medium disabled:opacity-50 flex items-center"
+                >
+                  Regenerate Alternative
+                </button>
+              )}
               <button
                 onClick={onClose}
-                className="px-6 py-2 bg-transparent text-gray-400 hover:text-white transition-colors font-medium"
+                disabled={isRepairing}
+                className="px-6 py-2 bg-transparent text-gray-400 hover:text-white transition-colors font-medium disabled:opacity-50"
               >
                 Cancel
               </button>
@@ -186,7 +208,8 @@ export function RepairedPreviewModal({
                   onApplyChanges();
                   onClose();
                 }}
-                className="px-6 py-2 bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg shadow-fuchsia-500/25 transition-all flex items-center"
+                disabled={isRepairing}
+                className="px-6 py-2 bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 text-white rounded-lg font-medium shadow-lg shadow-fuchsia-500/25 transition-all flex items-center disabled:opacity-50"
               >
                 Apply Changes
               </button>
