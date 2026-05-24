@@ -7,6 +7,7 @@ import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getPersonaPrompt, PersonaId } from './personas';
 import { AnalysisResultSchema, FixResultSchema } from './schema';
 import { retrieveContext } from './rag/retriever';
+import { DEMO_EXAMPLES } from './demoExamples';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
 const MAX_CODE_LENGTH = 50000; // ~15k tokens guardrail
@@ -265,10 +266,25 @@ This issue should be the primary issue returned if a severe mismatch is detected
     const retrievedDocs = retrieveContext(code, language);
     const ragContext = retrievedDocs.length > 0 ? retrievedDocs.map(d => ({ id: d.id, title: d.title, content: d.content })) : undefined;
 
+    // Smart Mock Engine: Check if this is custom code
+    const isDefaultTemplate = Object.values(DEMO_EXAMPLES).some(ex => ex.code.trim() === code.trim());
+    if (!isDefaultTemplate && code.trim() !== '') {
+      return {
+        issues: [
+          { title: 'Custom Code in Demo Mode', severity: 'Low', line: 1, explanation: 'You are currently running in **Demo Mode**, which only returns hardcoded mock responses for the built-in Demo PRs.\n\nTo analyze your own custom code, please **Turn OFF Demo Mode** (toggle in the top right).', suggested_fix: 'Turn Demo Mode OFF to connect to the real Gemini AI Engine.', confidence: 1.0 }
+        ],
+        health_score: 50,
+        merge_recommendation: 'Needs Changes',
+        confidenceMetrics: { ...defaultConfidence, manual_review_recommended: true },
+        promptVersion: 'v2.0',
+        ragContext
+      };
+    }
+
     if (persona === 'security') {
       return {
         issues: [
-          { title: 'SQL Injection Vulnerability', severity: 'Critical', line: 5, explanation: 'Concatenating user input directly into a SQL query exposes the system to injection attacks. This must be fixed immediately using prepared statements.', suggested_fix: 'const query = "SELECT * FROM users WHERE id = ?";\ndb.execute(query, [user.id]);', confidence: 0.99 }
+          { title: 'SQL Injection Vulnerability', severity: 'Critical', line: 7, explanation: 'Concatenating user input directly into a SQL query exposes the system to injection attacks. This must be fixed immediately using prepared statements.', suggested_fix: 'const query = "SELECT * FROM users WHERE id = ?";\ndb.execute(query, [userId]);', confidence: 0.99 }
         ],
         health_score: 40,
         merge_recommendation: 'High Risk',
@@ -280,7 +296,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
     if (persona === 'performance') {
       return {
         issues: [
-          { title: 'O(N^2) Complexity detected', severity: 'High', line: 11, explanation: 'Nested loops over the same transactions array will cause severe CPU bottlenecks as the payload scales. Please optimize using a Hash Map.', suggested_fix: 'const seen = new Set();\nfor(const t of user.transactions) {\n  if(!seen.has(t.id)) {\n    processed.push(t);\n    seen.add(t.id);\n  }\n}', confidence: 0.95 }
+          { title: 'O(N^2) Complexity detected', severity: 'High', line: 5, explanation: 'Nested loops over the same transactions array will cause severe CPU bottlenecks as the payload scales. Please optimize using a Hash Map or Set.', suggested_fix: 'const seen = new Set();\nfor(const t of user.transactions) {\n  if(!seen.has(t.id)) {\n    processed.push(t);\n    seen.add(t.id);\n  }\n}', confidence: 0.95 }
         ],
         health_score: 65,
         merge_recommendation: 'Needs Changes',
