@@ -7,6 +7,7 @@ import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getPersonaPrompt, PersonaId } from './personas';
 import { AnalysisResultSchema, FixResultSchema } from './schema';
 import { retrieveContext } from './rag/retriever';
+import { retrieveAdvancedContext } from './rag/advancedRetriever';
 import { DEMO_EXAMPLES } from './demoExamples';
 
 const API_KEY = process.env.GEMINI_API_KEY || '';
@@ -113,7 +114,15 @@ class GeminiService {
     }
 
     // --- RAG PIPELINE EXECUTOR ---
-    const retrievedDocs = retrieveContext(code, context.language || '');
+    // First, try the Advanced Vector DB approach (Pinecone + Gemini Embeddings)
+    let retrievedDocs = await retrieveAdvancedContext(code, 2);
+    
+    // If Pinecone fails (e.g. Rate Limit Exhausted, missing API key), seamlessly fallback to local in-memory Keyword Matcher
+    if (retrievedDocs.length === 0) {
+      console.log("[RAG Fallback] Pinecone unavailable or returned no docs. Falling back to in-memory Keyword Retriever.");
+      retrievedDocs = retrieveContext(code, context.language || '');
+    }
+
     let ragPromptAddition = '';
     
     if (retrievedDocs.length > 0) {
