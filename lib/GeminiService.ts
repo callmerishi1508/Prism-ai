@@ -157,14 +157,23 @@ This issue should be the primary issue returned if a severe mismatch is detected
       CleanUp.logError('[GeminiService] Analysis failed', error);
 
       if (!context.isDemoMode && this.ai) {
+        const isRateLimit = error?.status === 429 || (error?.message && error.message.includes('429'));
+        const cleanMessage = error?.message 
+          ? error.message.split('{')[0].trim() // Strip out the massive JSON payload Google attaches
+          : 'Unknown API Error';
+
         return {
           issues: [
             {
-              title: `Gemini API Error`,
+              title: isRateLimit ? 'Gemini API Rate Limit Exceeded (429)' : `Gemini API Error`,
               severity: 'Critical',
               line: 1,
-              explanation: `The Gemini API failed to analyze the code. This is typically caused by a rate limit (429 Quota Exceeded) or an invalid API key. \n\n**Error Details:**\n${error?.message || 'Unknown Error'}`,
-              suggested_fix: 'Check your Google Cloud Console for quota limits or verify your GEMINI_API_KEY in .env.local.',
+              explanation: isRateLimit 
+                ? 'Google Gemini has temporarily blocked the request due to hitting the free-tier rate limit (15 requests per minute). \n\n**To continue testing the UI immediately, please turn DEMO MODE back ON (top right corner).**'
+                : `The Gemini API failed to analyze the code. \n\n**Error Details:**\n${cleanMessage}`,
+              suggested_fix: isRateLimit 
+                ? 'Turn ON Demo Mode to bypass the API, or upgrade your Google Cloud billing.' 
+                : 'Check your Google Cloud Console or verify your GEMINI_API_KEY in .env.local.',
               confidence: 1.0
             }
           ],
