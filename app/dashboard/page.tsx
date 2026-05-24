@@ -11,6 +11,7 @@ import { PERSONAS, PersonaId } from '@/lib/personas';
 import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
 import { DebugPanel } from '@/components/dashboard/DebugPanel';
+import { GitHubModal } from '@/components/dashboard/GitHubModal';
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
@@ -70,21 +71,29 @@ export default function DashboardPage() {
   };
   const [persona, setPersona] = useState<PersonaId>('cto');
   const [isDemoMode, setIsDemoMode] = useState(true);
+  const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
 
   const [latencyMs, setLatencyMs] = useState<number | undefined>();
   const { data: analysis, isLoading, execute, error } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
-  const handleAnalyze = async () => {
-    if (!code || code.trim() === '') return;
+  const handleAnalyze = async (overrideCode?: string) => {
+    const codeToAnalyze = overrideCode !== undefined ? overrideCode : code;
+    if (!codeToAnalyze || codeToAnalyze.trim() === '') return;
     
     const start = Date.now();
     try {
-      await execute({ code, language, persona, isDemoMode });
+      await execute({ code: codeToAnalyze, language, persona, isDemoMode });
     } catch (err) {
       console.error("Analysis execution failed:", err);
     } finally {
       setLatencyMs(Date.now() - start);
     }
+  };
+
+  const handleGitHubFetch = (diff: string) => {
+    setCode(diff);
+    // Auto trigger analysis with the new diff
+    handleAnalyze(diff);
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -140,11 +149,20 @@ export default function DashboardPage() {
             </div>
             <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200 transition-colors">Demo Mode</span>
           </label>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10">
+          <button 
+            onClick={() => setIsGitHubModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10"
+          >
             <GitMerge size={16} /> Connect GitHub
           </button>
         </div>
       </header>
+
+      <GitHubModal 
+        isOpen={isGitHubModalOpen} 
+        onClose={() => setIsGitHubModalOpen(false)} 
+        onFetchSuccess={handleGitHubFetch} 
+      />
 
       <main className="relative z-10 flex flex-col lg:flex-row gap-8 p-6 max-w-[1800px] mx-auto h-[calc(100vh-73px)]">
         
@@ -190,7 +208,7 @@ export default function DashboardPage() {
             </div>
             
             <button
-              onClick={handleAnalyze}
+              onClick={() => handleAnalyze()}
               disabled={isLoading}
               className={`group relative flex items-center gap-2 px-6 py-2.5 rounded-xl text-white font-semibold transition-all disabled:opacity-50 overflow-hidden bg-gradient-to-r from-sky-500 to-indigo-500 hover:from-sky-400 hover:to-indigo-400 shadow-[0_0_20px_rgba(56,189,248,0.3)] hover:shadow-[0_0_30px_rgba(56,189,248,0.5)] ml-auto`}
             >
