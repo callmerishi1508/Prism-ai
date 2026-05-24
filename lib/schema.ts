@@ -30,12 +30,20 @@ export const AnalysisResultSchema = z.object({
 });
 
 export const FixResultSchema = z.object({
-  fixed_code: z.string().describe('The corrected code snippet'),
-  explanation: z.string().describe('Explanation of why this fix works'),
-  diff: z.string().optional().describe('Optional unified diff showing changes')
+  fixed_code: z.string(),
+  explanation: z.string()
+});
+
+export const RepairedVersionSchema = z.object({
+  repairedCode: z.string().describe('The fully repaired, production-ready codebase string.'),
+  summary: z.array(z.string()).describe('A concise list of architectural and security changes applied.'),
+  riskLevel: z.enum(['Low', 'Moderate', 'High']).describe('The estimated risk level of applying this refactor.'),
+  linesModified: z.number().describe('The total number of lines modified or touched.'),
+  vulnerabilitiesResolved: z.number().describe('The total number of vulnerabilities and issues successfully resolved.')
 });
 
 export type Issue = z.infer<typeof IssueSchema>;
 export type AnalysisResult = z.infer<typeof AnalysisResultSchema>;
 export type FixResult = z.infer<typeof FixResultSchema>;
+export type RepairedVersionResult = z.infer<typeof RepairedVersionSchema>;
 export type ConfidenceMetrics = z.infer<typeof ConfidenceMetricsSchema>;

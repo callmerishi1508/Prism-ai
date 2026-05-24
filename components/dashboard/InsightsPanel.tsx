@@ -12,6 +12,9 @@ interface InsightsPanelProps {
   activePersona?: any;
   error?: string | null;
   latencyMs?: number;
+  onGenerateRepair?: () => void;
+  isRepairing?: boolean;
+  repairProgress?: string;
 }
 
 // Cinematic stagger for demo wow-factor
@@ -31,7 +34,7 @@ const itemVariants: Variants = {
 // Staged AI Reasoning Simulation
 const loadingStates = ["Analyzing architecture...", "Scanning vulnerabilities...", "Evaluating performance...", "Generating insights..."];
 
-export function InsightsPanel({ analysis, isLoading, activePersona, error, latencyMs }: InsightsPanelProps) {
+export function InsightsPanel({ analysis, isLoading, activePersona, error, latencyMs, onGenerateRepair, isRepairing, repairProgress }: InsightsPanelProps) {
   const [loadingStep, setLoadingStep] = useState(0);
 
   useEffect(() => {
@@ -314,6 +317,30 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
               <IssueCard issue={issue} />
             </motion.div>
           ))}
+          
+          <motion.div variants={itemVariants} className="mt-4">
+            <button
+              onClick={onGenerateRepair}
+              disabled={isRepairing}
+              className={`w-full relative overflow-hidden group flex items-center justify-center gap-2 py-4 rounded-xl border font-bold text-sm tracking-wide transition-all ${
+                isRepairing 
+                  ? 'bg-fuchsia-500/10 border-fuchsia-500/30 text-fuchsia-400 cursor-not-allowed' 
+                  : 'bg-gradient-to-r from-fuchsia-600 to-indigo-600 hover:from-fuchsia-500 hover:to-indigo-500 border-transparent text-white shadow-lg shadow-fuchsia-500/25'
+              }`}
+            >
+              {isRepairing ? (
+                <>
+                  <Activity className="w-5 h-5 animate-spin" />
+                  <span>{repairProgress}</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 text-fuchsia-300 group-hover:scale-110 transition-transform" />
+                  <span>Generate Fully Repaired File</span>
+                </>
+              )}
+            </button>
+          </motion.div>
           </div>
         )}
       </div>

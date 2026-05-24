@@ -6,7 +6,7 @@ import * as crypto from 'crypto';
 
 import { GoogleGenAI, Type, Schema } from '@google/genai';
 import { getPersonaPrompt, PersonaId } from './personas';
-import { AnalysisResultSchema, FixResultSchema } from './schema';
+import { AnalysisResultSchema, FixResultSchema, RepairedVersionResult } from './schema';
 import { retrieveContext } from './rag/retriever';
 import { retrieveAdvancedContext } from './rag/advancedRetriever';
 import { DEMO_EXAMPLES } from './demoExamples';
@@ -64,6 +64,23 @@ class GeminiService {
         promptVersion: { type: Type.STRING }
       },
       required: ['issues', 'health_score', 'merge_recommendation']
+    };
+  }
+
+  private getRepairedVersionSchema(): Schema {
+    return {
+      type: Type.OBJECT,
+      properties: {
+        repairedCode: { type: Type.STRING },
+        summary: {
+          type: Type.ARRAY,
+          items: { type: Type.STRING }
+        },
+        riskLevel: { type: Type.STRING },
+        linesModified: { type: Type.INTEGER },
+        vulnerabilitiesResolved: { type: Type.INTEGER }
+      },
+      required: ['repairedCode', 'summary', 'riskLevel', 'linesModified', 'vulnerabilitiesResolved']
     };
   }
 
@@ -148,6 +165,7 @@ ${getPersonaPrompt(context.persona)}${ragPromptAddition}
 
 You are operating on PRISM AI V2. 
 You must output strictly matching the provided JSON schema. Ensure your "confidenceMetrics" accurately reflect your certainty in the code analysis.
+CRITICAL: The "health_score" MUST be an integer between 0 and 100. A score of 100 means perfect code with 0 issues. A score of 0 means completely broken code. NEVER use 1 to mean 100%.
 
 CRITICAL RULE FOR LANGUAGE VALIDATION:
 The user has selected the language "${context.language || 'Unknown'}" from the dropdown. 
@@ -155,7 +173,10 @@ If the code provided is obviously NOT written in this selected language (e.g. th
 - title: "Language Mismatch Detected"
 - explanation: "Please choose correct language. Please provide the choosed language code."
 - severity: "High"
-This issue should be the primary issue returned if a severe mismatch is detected.
+This issue MUST be included if a mismatch is detected. However, you MUST ALSO continue to analyze the code and report any other syntax, logic, or security errors present in the code snippet. Do not stop at the language mismatch.
+
+CRITICAL RULE FOR SUGGESTING FIXES:
+When encountering what appears to be an "Undefined Variable", explicitly consider multiple intents in your suggested_fix. For example, if the user types \`print(hello)\`, they may have forgotten to define the variable, OR they may have forgotten string quotes (e.g., \`print("hello")\`). Your suggested_fix MUST mention both possibilities if applicable.
 `.trim();
 
     const activeAi = context.customApiKey ? new GoogleGenAI({ apiKey: context.customApiKey }) : this.ai;
@@ -632,8 +653,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
         promptVersion: 'v2.0',
         ragContext: fallbackRagContext
       };
-    }
-    if (matchedDemo?.id === 'graphql-dos') {
+    }    if (matchedDemo?.id === 'graphql-dos') {
       return {
         issues: [
           { title: 'Query Depth Attack (DoS)', severity: 'Critical', line: 1, explanation: 'Deeply nested GraphQL queries allow an attacker to easily exhaust server resources and take down the database through excessive joins.', suggested_fix: 'Implement GraphQL query depth limiting middleware (e.g., max depth of 5).', confidence: 0.97 }
@@ -671,7 +691,64 @@ This issue should be the primary issue returned if a severe mismatch is detected
       ragContext: fallbackRagContext
     };
   }
+
+  public async generateRepairedVersion(
+    code: string,
+    issues: any[],
+    context: { persona: PersonaId, language?: string, customApiKey?: string }
+  ): Promise<RepairedVersionResult> {
+    if (!code || code.trim() === '') {
+      throw new Error('Code is required for generating a repaired version.');
+    }
+
+    const systemInstruction = `
+${getPersonaPrompt(context.persona)}
+
+You are operating on PRISM AI V2 as an Autonomous Refactoring Agent.
+Your objective is to generate a fully repaired, production-ready version of the codebase based on the provided original code and the array of identified issues.
+
+CRITICAL ARCHITECTURAL CONSTRAINTS:
+1. Do NOT rewrite unrelated architecture.
+2. Minimize unnecessary modifications.
+3. Preserve structure wherever possible.
+4. Avoid renaming unrelated variables/functions.
+5. Do NOT introduce fake dependencies.
+6. Do NOT modify unrelated business logic.
+
+You must output strictly matching the provided JSON schema. Ensure your "repairedCode" is raw code without markdown wrappers, preserving the language syntax (${context.language || 'Unknown'}).
+The "riskLevel" should be "Low", "Moderate", or "High" based on the architectural impact of your changes.
+    `.trim();
+
+    const activeAi = context.customApiKey ? new GoogleGenAI({ apiKey: context.customApiKey }) : (this.ai || new GoogleGenAI({ apiKey: API_KEY }));
+
+    try {
+      const response = await activeAi.models.generateContent({
+        model: 'gemini-2.5-pro',
+        contents: [
+          { role: 'user', parts: [{ text: `Original Code:\n\n${code}\n\nIdentified Issues:\n\n${JSON.stringify(issues, null, 2)}` }] }
+        ],
+        config: {
+          systemInstruction: systemInstruction,
+          responseMimeType: 'application/json',
+          responseSchema: this.getRepairedVersionSchema(),
+          temperature: 0.2, // low temp for safe refactoring
+        }
+      });
+
+      const text = response.text;
+      if (!text) {
+        throw new Error('Empty response from AI for repaired version');
+      }
+
+      const result = JSON.parse(text) as RepairedVersionResult;
+      return result;
+
+    } catch (error: any) {
+      CleanUp.logError('Gemini API Error in generateRepairedVersion', error);
+      throw error;
+    }
+  }
 }
 
 export default new GeminiService();
-// forced refresh
+// forced refreshh

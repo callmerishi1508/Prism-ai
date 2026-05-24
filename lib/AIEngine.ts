@@ -49,6 +49,11 @@ class AIEngine {
     return tests;
   }
 
+  async generateRepairedVersion(code: string, issues: any[], persona: PersonaId, language?: string, customApiKey?: string) {
+    await this.gemini.initializeSession();
+    return await this.gemini.generateRepairedVersion(code, issues, { persona, language, customApiKey });
+  }
+
   calculateHealthScore(analysis: any) {
     // Basic fallback if health_score isn't generated
     if (analysis && analysis.health_score) {

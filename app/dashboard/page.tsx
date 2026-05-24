@@ -12,6 +12,7 @@ import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
 import { GitHubModal } from '@/components/dashboard/GitHubModal';
 import { ApiKeyModal } from '@/components/dashboard/ApiKeyModal';
+import { RepairedPreviewModal } from '@/components/dashboard/RepairedPreviewModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -69,6 +70,12 @@ export default function DashboardPage() {
   const [isDemoMode, setIsDemoMode] = useState(searchParams.get('demo') === 'true');
   const { data: analysis, isLoading, execute, error, reset } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
+  const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
+  const [repairedData, setRepairedData] = useState<any>(null);
+  const [originalCodeSnapshot, setOriginalCodeSnapshot] = useState<string | null>(null);
+  const [isRepairing, setIsRepairing] = useState(false);
+  const [repairProgress, setRepairProgress] = useState('');
+
   // Wrapper around setCode to automatically disable demo mode when user types
   const setCode = (newCode: string) => {
     // Prevent Monaco from resetting state if it fires an onChange without actual edits (e.g. newline normalization)
@@ -113,6 +120,59 @@ export default function DashboardPage() {
     setIsDemoMode(false); // Automatically turn off demo mode for real PRs
     // Auto trigger analysis with the new diff
     handleAnalyze(diff, false);
+  };
+
+  const handleGenerateRepair = async () => {
+    if (!analysis || !analysis.issues.length) return;
+    
+    setIsRepairing(true);
+    const messages = ["Synthesizing production-safe revision...", "Applying architectural corrections...", "Rebuilding optimized implementation...", "Validating refactor consistency..."];
+    let i = 0;
+    const interval = setInterval(() => {
+      setRepairProgress(messages[i]);
+      i = (i + 1) % messages.length;
+    }, 1500);
+    setRepairProgress(messages[0]);
+
+    try {
+      const apiKeyStr = localStorage.getItem('prism_custom_api_key');
+      const response = await fetch('/api/review/repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code,
+          issues: analysis.issues,
+          persona,
+          language,
+          customApiKey: apiKeyStr || undefined
+        })
+      });
+
+      if (!response.ok) throw new Error('Repair failed');
+      const data = await response.json();
+      setRepairedData(data);
+      setIsRepairModalOpen(true);
+    } catch (error) {
+      console.error(error);
+      alert('Failed to generate repaired version. See console.');
+    } finally {
+      clearInterval(interval);
+      setIsRepairing(false);
+    }
+  };
+
+  const applyRepairedCode = () => {
+    if (repairedData?.repairedCode) {
+      setOriginalCodeSnapshot(code);
+      setCodeState(repairedData.repairedCode);
+    }
+  };
+
+  const restoreOriginalCode = () => {
+    if (originalCodeSnapshot) {
+      setCodeState(originalCodeSnapshot);
+      setOriginalCodeSnapshot(null);
+    }
   };
 
   const handleLoadDemo = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -208,6 +268,20 @@ export default function DashboardPage() {
         isOpen={isApiKeyModalOpen}
         onClose={() => setIsApiKeyModalOpen(false)}
       />
+      {repairedData && (
+        <RepairedPreviewModal
+          isOpen={isRepairModalOpen}
+          onClose={() => setIsRepairModalOpen(false)}
+          originalCode={code}
+          repairedCode={repairedData.repairedCode}
+          language={language}
+          summary={repairedData.summary}
+          riskLevel={repairedData.riskLevel}
+          linesModified={repairedData.linesModified}
+          vulnerabilitiesResolved={repairedData.vulnerabilitiesResolved}
+          onApplyChanges={applyRepairedCode}
+        />
+      )}
 
       <main className="relative z-10 flex flex-col lg:flex-row gap-6 p-4 lg:p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
         
@@ -308,12 +382,32 @@ export default function DashboardPage() {
               onChange={setCode}
               onLanguageChange={setLanguage}
             />
+            {originalCodeSnapshot && (
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={restoreOriginalCode}
+                  className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-sm text-gray-300 transition-colors flex items-center"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Restore Original Code
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Right Column (Insights) */}
         <div className="w-full lg:w-1/2 lg:h-full lg:overflow-y-auto overflow-x-hidden lg:pr-2 custom-scrollbar pb-10">
-          <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} error={error} latencyMs={latencyMs} />
+          <InsightsPanel 
+            analysis={analysis} 
+            isLoading={isLoading} 
+            activePersona={activePersona} 
+            onGenerateRepair={handleGenerateRepair}
+            isRepairing={isRepairing}
+            repairProgress={repairProgress}
+            error={error} 
+            latencyMs={latencyMs} 
+          />
         </div>
       </main>
 
