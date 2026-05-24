@@ -70,6 +70,9 @@ export default function DashboardPage() {
 
   // Wrapper around setCode to automatically disable demo mode when user types
   const setCode = (newCode: string) => {
+    // Prevent Monaco from resetting state if it fires an onChange without actual edits (e.g. newline normalization)
+    if (newCode.replace(/\r\n/g, '\n') === code.replace(/\r\n/g, '\n')) return;
+    
     setCodeState(newCode);
     setIsDemoMode(false);
     setActiveDemo(null);
