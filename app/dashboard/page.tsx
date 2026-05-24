@@ -190,7 +190,7 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 flex-1 min-w-0">
               <div className="relative">
                 <select
                   value={activeDemo || ''}
@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
               <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
 
-              <div className="flex overflow-x-auto bg-black/50 rounded-xl p-1 border border-white/5 max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+              <div className="flex overflow-x-auto bg-black/50 rounded-xl p-1 border border-white/5 w-full xl:w-auto [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {Object.values(PERSONAS).map(p => {
                   const isActive = persona === p.id;
                   const Icon = ICON_MAP[p.theme.icon];
