@@ -19,18 +19,28 @@ const ICON_MAP: Record<string, React.ElementType> = {
   Briefcase
 };
 
-const DEFAULT_CODE = `// Welcome to PRISM AI
-// Paste your code here or load a Demo PR to get an instant AI review.
+const LANGUAGE_TEMPLATES: Record<string, string> = {
+  javascript: `// Welcome to PRISM AI\n// Paste your JS code here for an instant AI review.\n\nfunction processUserData(user) {\n  const query = "SELECT * FROM users WHERE id = " + user.id;\n  db.execute(query);\n  return [];\n}`,
+  python: `# Welcome to PRISM AI\n# Paste your Python code here for an instant AI review.\n\ndef process_user_data(user):\n    query = "SELECT * FROM users WHERE id = " + str(user.id)\n    db.execute(query)\n    return []`,
+  c: `// Welcome to PRISM AI\n// Paste your C code here.\n\n#include <stdio.h>\n\nint main() {\n    printf("Hello World\\n");\n    return 0;\n}`,
+  cpp: `// Welcome to PRISM AI\n// Paste your C++ code here.\n\n#include <iostream>\n\nint main() {\n    std::cout << "Hello World" << std::endl;\n    return 0;\n}`,
+  go: `// Welcome to PRISM AI\n// Paste your Go code here.\n\npackage main\n\nimport "fmt"\n\nfunc main() {\n    fmt.Println("Hello World")\n}`
+};
 
-function processUserData(user) {
-  const query = "SELECT * FROM users WHERE id = " + user.id;
-  db.execute(query);
-  return [];
-}`;
+const DEFAULT_CODE = LANGUAGE_TEMPLATES['javascript'];
 
 export default function DashboardPage() {
   const [code, setCode] = useState(DEFAULT_CODE);
-  const [language, setLanguage] = useState('javascript');
+  const [language, setLanguageState] = useState('javascript');
+
+  const setLanguage = (newLang: string) => {
+    // If the current code is one of our default templates, swap it to the new language's template
+    const isCurrentCodeDefault = Object.values(LANGUAGE_TEMPLATES).includes(code) || code === DEFAULT_CODE || code.trim() === '';
+    setLanguageState(newLang);
+    if (isCurrentCodeDefault && LANGUAGE_TEMPLATES[newLang]) {
+      setCode(LANGUAGE_TEMPLATES[newLang]);
+    }
+  };
   const [persona, setPersona] = useState<PersonaId>('cto');
   const [isDemoMode, setIsDemoMode] = useState(true);
 
@@ -169,6 +179,7 @@ export default function DashboardPage() {
               code={code}
               language={language}
               onChange={setCode}
+              onLanguageChange={setLanguage}
             />
           </div>
         </div>

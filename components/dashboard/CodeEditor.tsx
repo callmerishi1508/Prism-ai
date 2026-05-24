@@ -9,6 +9,7 @@ interface CodeEditorProps {
   code: string;
   language: string;
   onChange: (value: string) => void;
+  onLanguageChange?: (language: string) => void;
 }
 
 const SUPPORTED_LANGUAGES = [
@@ -46,10 +47,23 @@ const SUPPORTED_LANGUAGES = [
   { id: 'solidity', name: 'Solidity' }
 ];
 
-export function CodeEditor({ code, language, onChange }: CodeEditorProps) {
+export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [currentLang, setCurrentLang] = useState(language);
+
+  // Sync internal state with props if parent changes it (e.g. via load demo)
+  React.useEffect(() => {
+    setCurrentLang(language);
+  }, [language]);
+
+  const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newLang = e.target.value;
+    setCurrentLang(newLang);
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    }
+  };
 
   const handleCopy = () => {
     navigator.clipboard.writeText(code);
@@ -83,7 +97,7 @@ export function CodeEditor({ code, language, onChange }: CodeEditorProps) {
           </div>
           <select
             value={currentLang}
-            onChange={(e) => setCurrentLang(e.target.value)}
+            onChange={handleLanguageChange}
             className="bg-transparent text-gray-300 text-sm outline-none cursor-pointer hover:text-white transition-colors ml-4"
           >
             {SUPPORTED_LANGUAGES.map((lang) => (
