@@ -79,7 +79,7 @@ class GeminiService {
     };
   }
 
-  async analyzeCode(code: string, context: { persona: PersonaId, mode: string, language?: string, isDemoMode?: boolean }) {
+  async analyzeCode(code: string, context: { persona: PersonaId, mode: string, language?: string, isDemoMode?: boolean, customApiKey?: string }): Promise<any> {
     const isFixMode = context.mode === 'fix';
     
     // CACHE CHECK
@@ -126,7 +126,7 @@ class GeminiService {
 
     // --- RAG PIPELINE EXECUTOR ---
     // First, try the Advanced Vector DB approach (Pinecone + Gemini Embeddings)
-    let retrievedDocs = await retrieveAdvancedContext(code, 2);
+    let retrievedDocs = await retrieveAdvancedContext(code, 2, context.customApiKey);
     
     // If Pinecone fails (e.g. Rate Limit Exhausted, missing API key), seamlessly fallback to local in-memory Keyword Matcher
     if (retrievedDocs.length === 0) {
@@ -158,9 +158,12 @@ If the code provided is obviously NOT written in this selected language (e.g. th
 This issue should be the primary issue returned if a severe mismatch is detected.
 `.trim();
 
+    const activeAi = context.customApiKey ? new GoogleGenAI({ apiKey: context.customApiKey }) : this.ai;
+    if (!activeAi) return this.getMockResponse(context.persona, isFixMode, code, context.language || '');
+
     try {
       // 2. Strict Structured JSON Output via Google Gen AI
-      const response = await this.ai.models.generateContent({
+      const response = await activeAi.models.generateContent({
         model: 'gemini-2.5-pro',
         contents: `Here is the code to review:\n\`\`\`\n${code}\n\`\`\``,
         config: {
@@ -181,7 +184,7 @@ This issue should be the primary issue returned if a severe mismatch is detected
       
       if (!parsedResult.success) {
         console.error('[Zod Validation Failed] Attempting Self-Healing...', parsedResult.error);
-        const healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs);
+        const healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs, context.customApiKey);
         responseCache.set(cacheKey, healed);
         return healed;
       }
@@ -189,18 +192,24 @@ This issue should be the primary issue returned if a severe mismatch is detected
       // Attach RAG context to the result so the UI can display it
       const finalData = parsedResult.data as any;
       if (retrievedDocs.length > 0 && !isFixMode) {
-        finalData.ragContext = retrievedDocs.map(d => ({ 
+        finalData.ragContext = retrievedDocs.map((d: any) => ({ 
           id: d.id, title: d.title, content: d.content,
           category: d.category, author: d.author, lastUpdated: d.lastUpdated, relevanceScore: d.relevanceScore 
         }));
       }
 
-      
       responseCache.set(cacheKey, finalData);
       return finalData;
 
     } catch (error: any) {
-      CleanUp.logError('[GeminiService] Analysis failed', error);
+      // SECURITY: NEVER log full error objects when custom keys are involved to prevent credential leakage in stack traces.
+      CleanUp.logError('[GeminiService] Analysis failed', { status: error?.status, message: error?.message });
+
+      // SAFE FALLBACK: If custom API key fails, fallback to default server infrastructure securely
+      if (context.customApiKey && this.ai) {
+        console.warn('[Gemini Fallback] Custom API Key failed or rate limited. Falling back to default server infrastructure.');
+        return await this.analyzeCode(code, { ...context, customApiKey: undefined });
+      }
 
       const isOffline = error?.message?.includes('fetch failed') || error?.code === 'ENOTFOUND' || error?.code === 'ECONNREFUSED' || error?.cause?.code === 'ENOTFOUND';
       if (isOffline) {
@@ -262,24 +271,25 @@ This issue should be the primary issue returned if a severe mismatch is detected
     }
   }
 
-  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId, isFixMode: boolean, retrievedDocs: any[] = []) {
-    if (!this.ai) return this.getMockResponse(persona, isFixMode);
+  private async attemptSelfHealing(brokenJson: string, systemInstruction: string, persona: PersonaId, isFixMode: boolean, retrievedDocs: any[] = [], customApiKey?: string) {
+    console.log('[Self-Healing] Engaging LLM to repair malformed JSON output...');
+    const activeAi = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : this.ai;
+    if (!activeAi) return this.getMockResponse(persona, isFixMode);
 
     try {
-      console.log('[Self-Healing] Pinging LLM to repair JSON...');
-      const repairResponse = await this.ai.models.generateContent({
-        model: 'gemini-2.5-flash', // Use flash for faster repair
-        contents: `The following JSON failed validation. Fix it to strictly match the schema:\n${brokenJson}`,
+      const response = await activeAi.models.generateContent({
+        model: 'gemini-2.5-flash', // Use faster model for healing
+        contents: `You are a strict JSON fixer. The following text failed to parse as JSON. Fix it so it perfectly matches the required schema. Output ONLY valid JSON, no markdown blocks, no conversational text.\n\nFAILED TEXT:\n${brokenJson}`,
         config: {
           systemInstruction,
           responseMimeType: 'application/json',
           responseSchema: isFixMode ? this.getFixResponseSchema() : this.getResponseSchema(),
-          temperature: 0.0
+          temperature: 0.1
         }
       });
 
-      if (!repairResponse.text) throw new Error("Repair failed");
-      const repairedJson = JSON.parse(repairResponse.text);
+      if (!response.text) throw new Error("Repair failed");
+      const repairedJson = JSON.parse(response.text);
       
       const TargetSchema = isFixMode ? FixResultSchema : AnalysisResultSchema;
       const finalResult = TargetSchema.safeParse(repairedJson);

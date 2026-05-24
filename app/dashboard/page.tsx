@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code } from 'lucide-react';
+import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code, Key } from 'lucide-react';
 import { CodeEditor } from '@/components/dashboard/CodeEditor';
 import { InsightsPanel } from '@/components/dashboard/InsightsPanel';
 import ScanningOverlay from '@/components/animations/ScanningOverlay';
@@ -11,6 +11,7 @@ import { PERSONAS, PersonaId } from '@/lib/personas';
 import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
 import { GitHubModal } from '@/components/dashboard/GitHubModal';
+import { ApiKeyModal } from '@/components/dashboard/ApiKeyModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -88,6 +89,7 @@ export default function DashboardPage() {
     }
   };
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
   const [latencyMs, setLatencyMs] = useState<number | undefined>();
 
@@ -188,6 +190,12 @@ export default function DashboardPage() {
           >
             <GitMerge size={14} /> <span className="hidden sm:inline">Connect GitHub</span>
           </button>
+          <button 
+            onClick={() => setIsApiKeyModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-500/10 hover:bg-emerald-500/20 transition-colors text-xs font-medium border border-emerald-500/20 text-emerald-400 hover:text-emerald-300 opacity-90 hover:opacity-100"
+          >
+            <Key size={14} /> <span className="hidden sm:inline">API Key</span>
+          </button>
         </div>
       </header>
 
@@ -195,6 +203,10 @@ export default function DashboardPage() {
         isOpen={isGitHubModalOpen} 
         onClose={() => setIsGitHubModalOpen(false)} 
         onFetchSuccess={handleGitHubFetch} 
+      />
+      <ApiKeyModal
+        isOpen={isApiKeyModalOpen}
+        onClose={() => setIsApiKeyModalOpen(false)}
       />
 
       <main className="relative z-10 flex flex-col lg:flex-row gap-6 p-4 lg:p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">

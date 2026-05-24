@@ -9,7 +9,7 @@ const responseCache = new Map<string, any>();
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, language, persona, isDemoMode } = await request.json();
+    const { code, language, persona, isDemoMode, customApiKey } = await request.json();
 
     // Validate input
     const validatedCode = validateInput(code);
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const validPersonas: PersonaId[] = ['cto', 'security', 'performance', 'faang'];
     const selectedPersona = validPersonas.includes(persona as PersonaId) ? persona : 'cto';
 
-    // Create cache key based on inputs
+    // Create cache key based on inputs (do NOT include apiKey in cache key to avoid collisions/leaks)
     const cacheKey = crypto.createHash('sha256').update(JSON.stringify({ validatedCode, selectedPersona, language, isDemoMode })).digest('hex');
     
     // Return cached response if available
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform analysis
-    const rawAnalysis = await AIEngine.analyzePR(validatedCode, selectedPersona, language, isDemoMode);
+    const rawAnalysis = await AIEngine.analyzePR(validatedCode, selectedPersona, language, isDemoMode, customApiKey);
 
     if (!rawAnalysis) {
       return NextResponse.json(

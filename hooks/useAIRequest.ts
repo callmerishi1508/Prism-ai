@@ -29,6 +29,15 @@ export function useAIRequest<T>(endpoint: string, options?: UseAIRequestOptions<
       let attempt = 0;
       let lastError: Error | null = null;
 
+      // Inject custom API key if present
+      let finalPayload = { ...payload };
+      if (typeof window !== 'undefined') {
+        const storedKey = localStorage.getItem('prism_custom_api_key');
+        if (storedKey) {
+          finalPayload.customApiKey = storedKey;
+        }
+      }
+
       while (attempt <= maxRetries) {
         try {
           const response = await fetch(endpoint, {
@@ -36,7 +45,7 @@ export function useAIRequest<T>(endpoint: string, options?: UseAIRequestOptions<
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(payload),
+            body: JSON.stringify(finalPayload),
           });
 
           if (!response.ok) {

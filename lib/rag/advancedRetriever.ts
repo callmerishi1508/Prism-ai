@@ -37,7 +37,7 @@ export interface AdvancedRetrievedDoc {
  * Instead of naive keyword matching, this converts the user's code into a high-dimensional vector
  * and calculates the exact cosine similarity against all company engineering standards.
  */
-export async function retrieveAdvancedContext(code: string, maxDocs: number = 2): Promise<AdvancedRetrievedDoc[]> {
+export async function retrieveAdvancedContext(code: string, maxDocs: number = 2, customApiKey?: string): Promise<AdvancedRetrievedDoc[]> {
   if (!pinecone) {
     console.warn("[RAG V3] Pinecone API Key missing. Falling back to in-memory retriever.");
     return [];
@@ -53,7 +53,10 @@ export async function retrieveAdvancedContext(code: string, maxDocs: number = 2)
       console.log('[Embedding Cache Hit] Bypassing Gemini API for vector generation.');
     } else {
       console.log('[Embedding Cache Miss] Generating new vector via Gemini API.');
-      const embeddingResponse = await ai.models.embedContent({
+      
+      const activeAi = customApiKey ? new GoogleGenAI({ apiKey: customApiKey }) : ai;
+      
+      const embeddingResponse = await activeAi.models.embedContent({
         model: 'text-embedding-004',
         contents: code,
       });

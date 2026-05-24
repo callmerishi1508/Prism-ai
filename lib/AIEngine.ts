@@ -13,7 +13,7 @@ class AIEngine {
     this.gemini = GeminiService;
   }
 
-  async analyzePR(code: string, persona: PersonaId, language?: string, isDemoMode?: boolean) {
+  async analyzePR(code: string, persona: PersonaId, language?: string, isDemoMode?: boolean, customApiKey?: string) {
     // Initialize Gemini session (mock or real)
     await this.gemini.initializeSession();
 
@@ -22,25 +22,28 @@ class AIEngine {
       persona,
       language,
       mode: 'analysis',
-      isDemoMode
+      isDemoMode,
+      customApiKey
     });
 
     return analysis;
   }
 
-  async generateFix(code: string, issue: string) {
+  async generateFix(code: string, issue: string, customApiKey?: string) {
     const fix = await this.gemini.analyzeCode(code, {
       persona: 'cto',
-      mode: 'fix'
+      mode: 'fix',
+      customApiKey
     });
 
     return fix;
   }
 
-  async generateTests(code: string) {
+  async generateTests(code: string, customApiKey?: string) {
     const tests = await this.gemini.analyzeCode(code, {
-      persona: 'performance',
-      mode: 'tests'
+      persona: 'cto',
+      mode: 'test',
+      customApiKey
     });
 
     return tests;
