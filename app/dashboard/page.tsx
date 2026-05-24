@@ -190,12 +190,12 @@ export default function DashboardPage() {
         <div className="flex flex-col gap-6 w-1/2 h-full min-h-0 overflow-y-auto overflow-x-hidden pr-2 custom-scrollbar">
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4">
               <div className="relative">
                 <select
                   value={activeDemo || ''}
                   onChange={handleLoadDemo}
-                  className="appearance-none bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner"
+                  className="appearance-none bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[160px]"
                 >
                   <option value="">Load Demo PR...</option>
                   {DEMO_EXAMPLES.map(ex => (
@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
               <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
 
-              <div className="flex bg-black/50 rounded-xl p-1 border border-white/5">
+              <div className="flex flex-wrap bg-black/50 rounded-xl p-1 border border-white/5">
                 {Object.values(PERSONAS).map(p => {
                   const isActive = persona === p.id;
                   const Icon = ICON_MAP[p.theme.icon];
