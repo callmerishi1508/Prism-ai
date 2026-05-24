@@ -207,7 +207,7 @@ export default function DashboardPage() {
 
               <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
 
-              <div className="flex flex-wrap bg-black/50 rounded-xl p-1 border border-white/5">
+              <div className="flex overflow-x-auto bg-black/50 rounded-xl p-1 border border-white/5 max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {Object.values(PERSONAS).map(p => {
                   const isActive = persona === p.id;
                   const Icon = ICON_MAP[p.theme.icon];
@@ -215,7 +215,7 @@ export default function DashboardPage() {
                     <button
                       key={p.id}
                       onClick={() => setPersona(p.id)}
-                      className={`relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
+                      className={`relative flex items-center whitespace-nowrap flex-shrink-0 gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-300 ${isActive ? 'text-white' : 'text-gray-400 hover:text-gray-200 hover:bg-white/5'}`}
                     >
                       {isActive && (
                         <motion.div layoutId="personaGlow" className={`absolute inset-0 ${p.theme.badgeBg} ${p.theme.glow} rounded-lg border border-${p.theme.color}-500/50`} style={{ zIndex: -1 }} />
