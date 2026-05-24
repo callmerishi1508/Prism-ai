@@ -65,12 +65,14 @@ export default function DashboardPage() {
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [isDemoMode, setIsDemoMode] = useState(searchParams.get('demo') === 'true');
+  const { data: analysis, isLoading, execute, error, reset } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
   // Wrapper around setCode to automatically disable demo mode when user types
   const setCode = (newCode: string) => {
     setCodeState(newCode);
     setIsDemoMode(false);
     setActiveDemo(null);
+    if (analysis) reset();
   };
 
   const setLanguage = (newLang: string) => {
@@ -84,7 +86,6 @@ export default function DashboardPage() {
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
 
   const [latencyMs, setLatencyMs] = useState<number | undefined>();
-  const { data: analysis, isLoading, execute, error } = useAIRequest<AnalysisResult>('/api/review/analyze');
 
   const handleAnalyze = async (overrideCode?: string, overrideDemoMode?: boolean) => {
     const codeToAnalyze = overrideCode !== undefined ? overrideCode : code;
@@ -119,16 +120,15 @@ export default function DashboardPage() {
       setCodeState(ex.code);
       setLanguageState(ex.language);
       setPersona(ex.idealPersona);
-      setIsDemoMode(true);
       setActiveDemo(ex.id);
-      handleAnalyze(ex.code, true);
+      handleAnalyze(ex.code, false);
     }
   };
 
   const activePersona = PERSONAS[persona];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-x-hidden font-sans">
+    <div className="h-screen bg-[#050505] text-gray-200 selection:bg-sky-500/30 overflow-hidden font-sans flex flex-col">
       <ScanningOverlay visible={isLoading} />
       
       {/* Dynamic Background ambient glow based on persona */}
@@ -159,15 +159,7 @@ export default function DashboardPage() {
           </span>
         </motion.div>
 
-        <div className="flex items-center gap-6">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <div className="relative">
-              <input type="checkbox" className="sr-only" checked={isDemoMode} onChange={() => setIsDemoMode(!isDemoMode)} />
-              <div className={`block w-10 h-5 rounded-full transition-colors duration-300 ${isDemoMode ? 'bg-emerald-500/80 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-white/10'}`}></div>
-              <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform duration-300 ${isDemoMode ? 'translate-x-5' : ''}`}></div>
-            </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-gray-400 group-hover:text-gray-200 transition-colors">Demo Mode</span>
-          </label>
+        <div className="flex items-center gap-4">
           <button 
             onClick={() => setIsGitHubModalOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-sm font-medium border border-white/5 hover:border-white/10"
@@ -183,15 +175,16 @@ export default function DashboardPage() {
         onFetchSuccess={handleGitHubFetch} 
       />
 
-      <main className="relative z-10 flex flex-col lg:flex-row gap-8 p-6 max-w-[1800px] mx-auto h-[calc(100vh-73px)]">
+      <main className="relative z-10 flex gap-6 p-6 max-w-[1800px] mx-auto flex-1 w-full min-h-0">
         
         {/* Left Column (Code & Controls) */}
-        <div className="flex flex-col gap-6 w-full lg:w-1/2 h-full">
+        <div className="flex flex-col gap-6 w-1/2 h-full min-h-0">
           {/* Controls Bar */}
           <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl border border-white/5 bg-white/[0.02] backdrop-blur-xl shadow-lg">
             <div className="flex items-center gap-4">
               <div className="relative">
                 <select
+                  value={activeDemo || ''}
                   onChange={handleLoadDemo}
                   className="appearance-none bg-black/40 border border-white/10 hover:border-white/20 text-gray-200 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner"
                 >
@@ -284,7 +277,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Right Column (Insights) */}
-        <div className="w-full lg:w-1/2 h-full overflow-y-auto pr-2 custom-scrollbar pb-10">
+        <div className="w-1/2 h-full overflow-y-auto pr-2 custom-scrollbar pb-10">
           <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} />
         </div>
       </main>
