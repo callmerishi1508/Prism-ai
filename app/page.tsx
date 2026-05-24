@@ -13,16 +13,16 @@ export default function Home() {
       <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] rounded-full bg-sky-900/20 blur-[150px] pointer-events-none" />
       
       {/* Navigation */}
-      <nav className="relative z-50 flex items-center justify-between px-8 py-6 max-w-7xl mx-auto w-full">
-        <div className="flex items-center gap-2">
+      <nav className="relative z-50 flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-8 py-6 max-w-7xl mx-auto w-full">
+        <div className="flex items-center gap-3 whitespace-nowrap">
           <Image src="/logo.png" alt="PRISM AI Logo" width={44} height={44} className="drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]" />
           <span className="text-xl font-bold tracking-tight text-white">PRISM<span className="text-sky-400 font-light">AI</span></span>
         </div>
-        <div className="flex items-center gap-6">
-          <a href="https://github.com/callmerishi1508/Prism-ai" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium">
+        <div className="flex items-center gap-4 sm:gap-6 flex-wrap justify-center">
+          <a href="https://github.com/callmerishi1508/Prism-ai" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-medium whitespace-nowrap">
             <GitMerge size={18} /> Star on GitHub
           </a>
-          <Link href="/dashboard" className="text-sm font-medium text-white px-5 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all">
+          <Link href="/dashboard" className="text-sm font-medium text-white px-5 py-2 rounded-full border border-white/10 hover:bg-white/5 transition-all whitespace-nowrap">
             Launch App
           </Link>
         </div>
