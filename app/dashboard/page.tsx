@@ -163,6 +163,17 @@ export default function DashboardPage() {
         </motion.div>
 
         <div className="flex items-center gap-6">
+          {/* Live Status & Model Microtext */}
+          <div className="hidden lg:flex items-center gap-4 border-r border-white/10 pr-6 mr-2">
+             <div className="flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+               <span className="text-[10px] uppercase tracking-widest text-emerald-500/80 font-medium">AI Engine Operational</span>
+             </div>
+             <div className="flex items-center gap-1">
+               <Code size={10} className="text-gray-500" />
+               <span className="text-[10px] uppercase tracking-wider text-gray-500 font-mono">gemini-2.5-pro</span>
+             </div>
+          </div>
           <label className="flex items-center gap-2 cursor-pointer group">
             <div className="relative">
               <input type="checkbox" className="sr-only" checked={isDemoMode} onChange={() => setIsDemoMode(!isDemoMode)} />
@@ -290,7 +301,7 @@ export default function DashboardPage() {
 
         {/* Right Column (Insights) */}
         <div className="w-full lg:w-1/2 lg:h-full lg:overflow-y-auto overflow-x-hidden lg:pr-2 custom-scrollbar pb-10">
-          <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} error={error} />
+          <InsightsPanel analysis={analysis} isLoading={isLoading} activePersona={activePersona} error={error} latencyMs={latencyMs} />
         </div>
       </main>
 

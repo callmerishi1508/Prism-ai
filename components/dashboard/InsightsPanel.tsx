@@ -11,6 +11,7 @@ interface InsightsPanelProps {
   isLoading?: boolean;
   activePersona?: any;
   error?: string | null;
+  latencyMs?: number;
 }
 
 // Cinematic stagger for demo wow-factor
@@ -30,7 +31,7 @@ const itemVariants: Variants = {
 // Staged AI Reasoning Simulation
 const loadingStates = ["Analyzing architecture...", "Scanning vulnerabilities...", "Evaluating performance...", "Generating insights..."];
 
-export function InsightsPanel({ analysis, isLoading, activePersona, error }: InsightsPanelProps) {
+export function InsightsPanel({ analysis, isLoading, activePersona, error, latencyMs }: InsightsPanelProps) {
   const [loadingStep, setLoadingStep] = useState(0);
 
   useEffect(() => {
@@ -136,6 +137,20 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error }: Ins
       animate="show"
       className="flex flex-col gap-6 w-full max-w-3xl mx-auto"
     >
+      {latencyMs && (
+        <div className="flex justify-end w-full -mb-3 relative z-20">
+          <motion.div 
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5 shadow-sm backdrop-blur-md"
+          >
+            <Zap size={12} className="text-sky-400" />
+            <span className="text-[10px] text-gray-400 font-mono tracking-wider uppercase">Completed in {(latencyMs / 1000).toFixed(1)}s</span>
+          </motion.div>
+        </div>
+      )}
+      
       {/* Top Metrics Row */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Health Score Ring */}
