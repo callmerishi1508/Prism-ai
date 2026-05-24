@@ -320,7 +320,7 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
           
           <motion.div variants={itemVariants} className="mt-4">
             <button
-              onClick={onGenerateRepair}
+              onClick={() => onGenerateRepair?.()}
               disabled={isRepairing}
               className={`w-full relative overflow-hidden group flex items-center justify-center gap-2 py-4 rounded-xl border font-bold text-sm tracking-wide transition-all ${
                 isRepairing 
