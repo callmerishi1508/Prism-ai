@@ -431,13 +431,14 @@ The health_score and merge_recommendation MUST reflect the CODE'S TRUE ENGINEERI
       
       if (!parseResponse.success) {
         console.error('[Zod Validation Failed] Attempting Self-Healing...', response.text);
-        const healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs, context.customApiKey, ragTelemetry);
+        let healed = await this.attemptSelfHealing(response.text, systemInstruction, context.persona, isFixMode, retrievedDocs, context.customApiKey, ragTelemetry);
+        healed = this.enforceDeterministicHealthScore(healed, isFixMode);
         responseCache.set(cacheKey, healed);
         return healed;
       }
 
       // Attach RAG context to the result so the UI can display it
-      const finalData = parseResponse.data as any;
+      let finalData = parseResponse.data as any;
       finalData.ragTelemetry = ragTelemetry;
       if (retrievedDocs.length > 0 && !isFixMode) {
         finalData.ragContext = retrievedDocs.map((d: any) => ({ 
@@ -446,6 +447,7 @@ The health_score and merge_recommendation MUST reflect the CODE'S TRUE ENGINEERI
         }));
       }
 
+      finalData = this.enforceDeterministicHealthScore(finalData, isFixMode);
       responseCache.set(cacheKey, finalData);
       return finalData;
 
@@ -1195,6 +1197,26 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
         reconstructedOriginalCode: stripDiffArtifacts(repairTargetCode, isPatchTarget)
       };
     }
+  }
+
+  private enforceDeterministicHealthScore(data: any, isFixMode: boolean) {
+    if (!isFixMode && data && Array.isArray(data.issues)) {
+      let penalty = 0;
+      data.issues.forEach((i: any) => {
+        if (i.severity === 'Critical') penalty += 40;
+        else if (i.severity === 'High') penalty += 20;
+        else if (i.severity === 'Medium') penalty += 10;
+        else if (i.severity === 'Low') penalty += 5;
+      });
+      data.health_score = Math.max(0, 100 - penalty);
+      
+      if (penalty > 0 && data.merge_recommendation === 'Production Ready') {
+        data.merge_recommendation = penalty >= 40 ? 'Do Not Deploy' : 'Needs Changes';
+      } else if (penalty === 0 && data.merge_recommendation !== 'Production Ready' && data.merge_recommendation !== 'Incomplete Placeholder' && data.merge_recommendation !== 'Insufficient Context') {
+        data.merge_recommendation = 'Production Ready';
+      }
+    }
+    return data;
   }
 }
 
