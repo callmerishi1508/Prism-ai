@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code, Key, GitPullRequest } from 'lucide-react';
-import { CodeEditor } from '@/components/dashboard/CodeEditor';
 import { stripDiffArtifacts } from '@/lib/rag/sanitizer';
 import { InsightsPanel } from '@/components/dashboard/InsightsPanel';
 import ScanningOverlay from '@/components/animations/ScanningOverlay';
@@ -13,10 +12,20 @@ import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
 import { GitHubModal, FetchedFile } from '@/components/dashboard/GitHubModal';
 import { ApiKeyModal } from '@/components/dashboard/ApiKeyModal';
-import { RepairedPreviewModal } from '@/components/dashboard/RepairedPreviewModal';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
+import dynamic from 'next/dynamic';
+
+const CodeEditor = dynamic(() => import('@/components/dashboard/CodeEditor').then(mod => mod.CodeEditor), {
+  ssr: false,
+  loading: () => <div className="h-full w-full flex items-center justify-center text-gray-500 bg-[#0d1117] border border-gray-800 rounded-lg animate-pulse">Loading Editor Core...</div>
+});
+
+const RepairedPreviewModal = dynamic(() => import('@/components/dashboard/RepairedPreviewModal').then(mod => mod.RepairedPreviewModal), {
+  ssr: false
+});
+
 
 const ICON_MAP: Record<string, React.ElementType> = {
   Sparkles,
