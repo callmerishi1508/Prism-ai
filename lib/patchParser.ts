@@ -213,7 +213,7 @@ export function parsePatchArtifact(diff: string): ParsedPatchArtifact {
     }
     if (line.startsWith('+++ b/')) {
        if (currentFile.filename === 'unknown' || currentFile.filename === 'unknown_recovered') currentFile.filename = line.substring(6);
-       currentFile.language = detectFileLanguage(currentFile.filename, '', 'plaintext');
+       currentFile.language = detectFileLanguage(currentFile.filename || '', '', 'plaintext');
        continue;
     }
 

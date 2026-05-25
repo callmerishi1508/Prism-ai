@@ -180,7 +180,7 @@ class GeminiService {
 
     // 1.6. UNIVERSAL SYNTAX VALIDATION LAYER
     const validateSyntaxStructure = (c: string): { isValid: boolean, errorLineStr?: string } => {
-      const stack = [];
+      const stack: { char: string; index: number }[] = [];
       let inString = false;
       let stringChar = '';
       let inLineComment = false;

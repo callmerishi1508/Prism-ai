@@ -71,7 +71,7 @@ async function validatePatchDetection() {
   assert(parsedJS.files[0].hunks[0].semanticDelta.beforeContext.includes('sanitize'), 'Before context should include sanitize');
   assert(parsedJS.files[0].hunks[0].semanticDelta.afterContext.includes('execute'), 'After context should include execute');
 
-  const intentJS = classifyIntent(JS_DIFF, { primaryDomain: 'SECURITY', secondaryDomains: [], domains: [], blockedDomains: [], framework: null, executionContext: { runtime: 'node', environment: 'server' } }, []);
+  const intentJS = classifyIntent(JS_DIFF, { primaryDomain: 'SECURITY' as any, secondaryDomains: [], domains: [], blockedDomains: [], framework: null, executionContext: { runtime: 'node', environment: 'server' } }, []);
   assert(intentJS.rankedIntents.some(i => ['SQL_INJECTION', 'XSS', 'AUTH_BYPASS'].includes(i.intent)), 'Should boost security intents based on semantic delta: ' + intentJS.primaryIntent);
 }
 

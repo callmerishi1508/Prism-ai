@@ -43,7 +43,7 @@ export const EXTENSION_TO_MONACO: Record<string, string> = {
   'scala': 'scala',
   'dart': 'dart',
   'r': 'r',
-  'm': 'objective-c', 'h': 'objective-c',
+  'm': 'objective-c',
   'lua': 'lua',
   'pl': 'perl', 'pm': 'perl',
   'sql': 'sql',

@@ -10,6 +10,8 @@ interface CodeEditorProps {
   language: string;
   onChange: (value: string) => void;
   onLanguageChange?: (language: string) => void;
+  issues?: any[];
+  isAnalyzing?: boolean;
 }
 
 const SUPPORTED_LANGUAGES = [
