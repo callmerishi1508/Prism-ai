@@ -3,9 +3,7 @@
 
 > PRISM AI is an intelligent codebase understanding tool that automates PR reviews, visualizes architectural dependencies, and actively generates self-healing patches using advanced AI engines.
 
-![Tech](https://img.shields.io/badge/Tech-Stack-Next.js-blue)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-success)
-![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
@@ -134,17 +132,28 @@ npm run test
 
 # Roadmap
 
-## V1
+## V1 (Current)
 
-* Complete end-to-end patch analysis & repair flow.
+* Semantic Git Patch Parsing & Reconstruction Engine
+* Universal Syntax Guardrails & Line Number Error Mapping
+* Self-Healing Code Repair Pipeline
+* Context-Aware RAG Architecture using Pinecone
+* Interactive Monaco Editor with Custom Patch Diff Tokenization
+* Code Quality, Security Telemetry, and PR Health Scoring
+* Dark-themed, responsive Dashboard UI with Framer Motion animations
 
-## V2
+## V2 (Planned)
 
-* Support for direct GitHub OAuth and CI/CD Pipeline integration.
+* Direct GitHub OAuth Integration for one-click PR fetching
+* Native CI/CD Pipeline integrations (GitHub Actions / GitLab CI)
+* Expanded syntax validation for non-C-style languages
+* Webhooks for real-time pull request monitoring
 
-## V3
+## V3 (Future Vision)
 
-* Automated large-scale codebase refactoring agent.
+* Automated large-scale codebase refactoring agents
+* Multi-file contextual repair coordination
+* Native IDE Extensions (VS Code, JetBrains)
 
 ---
 
@@ -156,13 +165,7 @@ npm run test
 4. Push to the Branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
 
----
 
-# License
-
-MIT License
-
----
 
 # Author
 
