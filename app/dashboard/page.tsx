@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code, Key } from 'lucide-react';
+import { Bot, Sparkles, ShieldAlert, Zap, Briefcase, GitMerge, ChevronDown, Code, Key, GitPullRequest } from 'lucide-react';
 import { CodeEditor } from '@/components/dashboard/CodeEditor';
+import { stripDiffArtifacts } from '@/lib/rag/sanitizer';
 import { InsightsPanel } from '@/components/dashboard/InsightsPanel';
 import ScanningOverlay from '@/components/animations/ScanningOverlay';
 import { useAIRequest } from '@/hooks/useAIRequest';
 import { PERSONAS, PersonaId } from '@/lib/personas';
 import { DEMO_EXAMPLES } from '@/lib/demoExamples';
 import { AnalysisResult } from '@/lib/schema';
-import { GitHubModal } from '@/components/dashboard/GitHubModal';
+import { GitHubModal, FetchedFile } from '@/components/dashboard/GitHubModal';
 import { ApiKeyModal } from '@/components/dashboard/ApiKeyModal';
 import { RepairedPreviewModal } from '@/components/dashboard/RepairedPreviewModal';
 import Link from 'next/link';
@@ -61,6 +62,8 @@ const LANGUAGE_TEMPLATES: Record<string, string> = {
 
 const DEFAULT_CODE = LANGUAGE_TEMPLATES['javascript'];
 
+type EditorExecutionMode = "PATCH_REVIEW" | "RECONSTRUCTED_SOURCE" | "REPAIRED_SOURCE";
+
 export default function DashboardPage() {
   const [code, setCodeState] = useState(DEFAULT_CODE);
   const [language, setLanguageState] = useState('javascript');
@@ -68,7 +71,26 @@ export default function DashboardPage() {
   const [activeDemo, setActiveDemo] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const [isDemoMode, setIsDemoMode] = useState(searchParams.get('demo') === 'true');
-  const { data: analysis, isLoading, execute, error, reset } = useAIRequest<AnalysisResult>('/api/review/analyze');
+  const { data: analysis, isLoading, error, execute, reset, latencyMs } = useAIRequest<AnalysisResult>('/api/review/analyze');
+  
+  const [prFiles, setPrFiles] = useState<FetchedFile[] | null>(null);
+  const [activeFileIndex, setActiveFileIndex] = useState(0);
+  
+  const [editorMode, setEditorMode] = useState<EditorExecutionMode>("PATCH_REVIEW");
+  const isPatchMode = editorMode === "PATCH_REVIEW";
+  const [reconstructedSource, setReconstructedSource] = useState<string | null>(null);
+
+  // Hardening: Track intervals safely
+  const repairIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      if (repairIntervalRef.current) clearInterval(repairIntervalRef.current);
+    };
+  }, []);
 
   const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
   const [repairedData, setRepairedData] = useState<any>(null);
@@ -84,6 +106,7 @@ export default function DashboardPage() {
     setCodeState(newCode);
     setIsDemoMode(false);
     setActiveDemo(null);
+    setEditorMode("RECONSTRUCTED_SOURCE"); // Default to source mode on manual edits
     if (analysis) reset();
   };
 
@@ -98,28 +121,48 @@ export default function DashboardPage() {
   const [isGitHubModalOpen, setIsGitHubModalOpen] = useState(false);
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
 
-  const [latencyMs, setLatencyMs] = useState<number | undefined>();
-
-  const handleAnalyze = async (overrideCode?: string, overrideDemoMode?: boolean) => {
-    const codeToAnalyze = overrideCode !== undefined ? overrideCode : code;
-    const demoModeToUse = overrideDemoMode !== undefined ? overrideDemoMode : isDemoMode;
-    if (!codeToAnalyze || codeToAnalyze.trim() === '') return;
+  const handleGitHubFetch = (files: FetchedFile[]) => {
+    if (!files || files.length === 0) return;
     
-    const start = Date.now();
-    try {
-      await execute({ code: codeToAnalyze, language, persona, isDemoMode: demoModeToUse });
-    } catch (err) {
-      console.error("Analysis execution failed:", err);
-    } finally {
-      setLatencyMs(Date.now() - start);
-    }
+    setPrFiles(files);
+    setActiveFileIndex(0);
+    setIsDemoMode(false); // Automatically turn off demo mode for real PRs
+    setEditorMode("PATCH_REVIEW");
+    
+    const activeFile = files[0];
+    setCodeState(activeFile.diff);
+    setLanguageState(activeFile.detectedLanguage);
+    
+    // Auto trigger analysis with the new diff
+    handleAnalyze(activeFile.diff, false, activeFile.detectedLanguage);
+  };
+  
+  const handleSwitchFile = (index: number) => {
+    if (!prFiles || !prFiles[index]) return;
+    setActiveFileIndex(index);
+    const activeFile = prFiles[index];
+    
+    setCodeState(activeFile.diff);
+    setLanguageState(activeFile.detectedLanguage);
+    
+    handleAnalyze(activeFile.diff, isDemoMode, activeFile.detectedLanguage);
   };
 
-  const handleGitHubFetch = (diff: string) => {
-    setCode(diff);
-    setIsDemoMode(false); // Automatically turn off demo mode for real PRs
-    // Auto trigger analysis with the new diff
-    handleAnalyze(diff, false);
+  const handleAnalyze = async (overrideCode?: string, overrideDemoMode?: boolean, overrideLanguage?: string) => {
+    const codeToAnalyze = overrideCode !== undefined ? overrideCode : code;
+    const demoModeToUse = overrideDemoMode !== undefined ? overrideDemoMode : isDemoMode;
+    const languageToUse = overrideLanguage !== undefined ? overrideLanguage : language;
+    if (!codeToAnalyze || codeToAnalyze.trim() === '') return;
+    
+    try {
+      const result = await execute({ code: codeToAnalyze, language: languageToUse, persona, isDemoMode: demoModeToUse });
+      // If we initially load code and it's heavily detected as a patch, set it.
+      if (result && (result as any).ragTelemetry?.patchDetectionConfidence > 0.7 && editorMode !== "REPAIRED_SOURCE") {
+        setEditorMode("PATCH_REVIEW");
+      }
+    } catch (err) {
+      console.error("Analysis execution failed:", err);
+    }
   };
 
   const handleGenerateRepair = async (isAlternative: boolean = false) => {
@@ -131,14 +174,22 @@ export default function DashboardPage() {
       : ["Synthesizing production-safe revision...", "Applying architectural corrections...", "Rebuilding optimized implementation...", "Validating refactor consistency..."];
       
     let i = 0;
-    const interval = setInterval(() => {
+    if (repairIntervalRef.current) clearInterval(repairIntervalRef.current);
+    repairIntervalRef.current = setInterval(() => {
+      if (!isMountedRef.current) return;
       setRepairProgress(messages[i]);
       i = (i + 1) % messages.length;
     }, 1500);
     setRepairProgress(messages[0]);
 
     try {
-      const apiKeyStr = localStorage.getItem('prism_custom_api_key');
+      let apiKeyStr = undefined;
+      try {
+        apiKeyStr = localStorage.getItem('prism_custom_api_key') || undefined;
+      } catch(e) {
+        console.warn('localStorage access denied');
+      }
+
       const response = await fetch('/api/review/repair', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -147,7 +198,7 @@ export default function DashboardPage() {
           issues: analysis.issues,
           persona,
           language,
-          customApiKey: apiKeyStr || undefined,
+          customApiKey: apiKeyStr,
           isAlternative,
           previousRepairedCode: isAlternative ? repairedData?.repairedCode : undefined
         })
@@ -155,21 +206,26 @@ export default function DashboardPage() {
 
       if (!response.ok) throw new Error('Repair failed');
       const data = await response.json();
+      if (!isMountedRef.current) return;
       setRepairedData(data);
       setIsRepairModalOpen(true);
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error(error);
       alert('Failed to generate repaired version. See console.');
     } finally {
-      clearInterval(interval);
-      setIsRepairing(false);
+      if (repairIntervalRef.current) clearInterval(repairIntervalRef.current);
+      if (isMountedRef.current) setIsRepairing(false);
     }
   };
 
   const applyRepairedCode = () => {
     if (repairedData?.repairedCode) {
       setOriginalCodeSnapshot(code);
-      setCodeState(repairedData.repairedCode);
+      const cleanCode = stripDiffArtifacts(repairedData.repairedCode, true);
+      setCodeState(cleanCode);
+      setReconstructedSource(repairedData.reconstructedOriginalCode);
+      setEditorMode("REPAIRED_SOURCE");
     }
   };
 
@@ -177,6 +233,7 @@ export default function DashboardPage() {
     if (originalCodeSnapshot) {
       setCodeState(originalCodeSnapshot);
       setOriginalCodeSnapshot(null);
+      setEditorMode("PATCH_REVIEW");
     }
   };
 
@@ -193,7 +250,8 @@ export default function DashboardPage() {
       setPersona(ex.idealPersona);
       setActiveDemo(ex.id);
       setIsDemoMode(true); // Automatically turn ON Demo Mode for built-in demos
-      handleAnalyze(ex.code, true);
+      setPrFiles(null);
+      handleAnalyze(ex.code, true, ex.language);
     }
   };
 
@@ -288,6 +346,7 @@ export default function DashboardPage() {
           onRegenerateAlternative={() => handleGenerateRepair(true)}
           isRepairing={isRepairing}
           repairProgress={repairProgress}
+          reconstructedOriginalCode={repairedData.reconstructedOriginalCode}
         />
       )}
 
@@ -312,6 +371,23 @@ export default function DashboardPage() {
                 </select>
                 <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none group-hover:text-gray-200 transition-colors" />
               </div>
+              
+              {prFiles && prFiles.length > 0 && (
+                <div className="relative w-full sm:w-auto group">
+                  <select
+                    value={activeFileIndex}
+                    onChange={(e) => handleSwitchFile(Number(e.target.value))}
+                    className="relative appearance-none w-full sm:w-auto bg-black/40 border border-sky-500/30 text-sky-400 text-sm font-medium rounded-xl px-4 py-2.5 pr-10 outline-none transition-all cursor-pointer shadow-inner min-w-[200px]"
+                  >
+                    {prFiles.map((f, idx) => (
+                      <option key={idx} value={idx} className="bg-black text-white">
+                        {f.filename.split('/').pop()} ({f.detectedLanguage})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-sky-400 pointer-events-none" />
+                </div>
+              )}
 
               <div className="h-px w-full sm:h-6 sm:w-px bg-white/10 hidden sm:block"></div>
 
@@ -384,9 +460,33 @@ export default function DashboardPage() {
 
           {/* Editor Area */}
           <div className="flex-1 min-h-[500px]">
+            {/* Patch Artifact Indicator */}
+            {analysis && analysis.ragTelemetry && isPatchMode && (
+              <div className="mx-6 mt-6 mb-2 p-4 bg-purple-500/10 border border-purple-500/20 rounded-xl flex items-center gap-3 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-1 h-full bg-purple-500"></div>
+                <GitPullRequest size={20} className="text-purple-400 shrink-0" />
+                <div>
+                  <h4 className="text-purple-100 font-medium text-sm">Detected Git Patch Artifact</h4>
+                  <p className="text-purple-300/70 text-xs mt-0.5">
+                    Analyzing semantic diff with {(analysis.ragTelemetry as any).totalAdditions} additions (Subtype: {(analysis.ragTelemetry as any).patchSubtype}).
+                  </p>
+                </div>
+                <div className="ml-auto flex gap-2">
+                  <button className="px-3 py-1.5 bg-black/40 hover:bg-black/60 text-purple-300 text-xs font-medium rounded-lg border border-purple-500/20 transition-colors">
+                    View Raw Patch
+                  </button>
+                  <button className="px-3 py-1.5 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 text-xs font-medium rounded-lg border border-purple-500/30 transition-colors">
+                    Analyze Added Lines Only
+                  </button>
+                </div>
+              </div>
+            )}
             <CodeEditor
+              key={`${editorMode}-${activeFileIndex}`}
               code={code}
-              language={language}
+              language={isPatchMode ? 'diff' : language}
+              issues={analysis?.issues || []}
+              isAnalyzing={isLoading}
               onChange={setCode}
               onLanguageChange={setLanguage}
             />

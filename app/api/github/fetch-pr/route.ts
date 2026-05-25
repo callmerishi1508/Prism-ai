@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { detectFileLanguage } from '@/lib/languageDetector';
 
 export async function POST(request: NextRequest) {
   try {
@@ -49,20 +50,43 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files modified in this PR.' }, { status: 400 });
     }
 
-    // Aggregate patches
-    let aggregatedDiff = `// GitHub PR Integration: ${owner}/${repo}#${pullNumber}\n// Displaying PR Diffs for AI Analysis\n\n`;
-    
+    // Track languages for dominant fallback
+    const langCounts: Record<string, number> = {};
+    const parsedFiles = [];
+
     for (const file of files) {
-      // Skip files with no patch (e.g. binary or renamed without changes)
       if (!file.patch) continue;
       
-      aggregatedDiff += `--- a/${file.filename}\n+++ b/${file.filename}\n`;
-      aggregatedDiff += `${file.patch}\n\n`;
+      const extMatch = file.filename.match(/\.([^.]+)$/);
+      const extension = extMatch ? extMatch[1].toLowerCase() : '';
       
-      // Safety cap so we don't blow up token limits instantly
-      if (aggregatedDiff.length > 50000) {
-         aggregatedDiff += `\n// ... [Diff truncated due to size limits] ...\n`;
-         break;
+      const diff = `--- a/${file.filename}\n+++ b/${file.filename}\n${file.patch}\n`;
+      
+      const detectedLanguage = detectFileLanguage(file.filename, diff, 'plaintext');
+      
+      if (detectedLanguage !== 'plaintext') {
+        langCounts[detectedLanguage] = (langCounts[detectedLanguage] || 0) + 1;
+      }
+
+      parsedFiles.push({
+        filename: file.filename,
+        extension,
+        detectedLanguage,
+        diff
+      });
+      
+      if (parsedFiles.length > 50) {
+        // Cap at 50 files to avoid massive payloads
+        break;
+      }
+    }
+
+    let dominantLanguage = 'plaintext';
+    let maxCount = 0;
+    for (const [lang, count] of Object.entries(langCounts)) {
+      if (count > maxCount) {
+        dominantLanguage = lang;
+        maxCount = count;
       }
     }
 
@@ -70,7 +94,8 @@ export async function POST(request: NextRequest) {
       owner,
       repo,
       pullNumber,
-      diff: aggregatedDiff
+      dominantLanguage,
+      files: parsedFiles
     });
 
   } catch (error: any) {

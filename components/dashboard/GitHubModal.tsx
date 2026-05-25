@@ -2,10 +2,17 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GitPullRequest, X, Loader2 } from 'lucide-react';
 
+export interface FetchedFile {
+  filename: string;
+  extension: string;
+  detectedLanguage: string;
+  diff: string;
+}
+
 interface GitHubModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onFetchSuccess: (diff: string) => void;
+  onFetchSuccess: (files: FetchedFile[]) => void;
 }
 
 export function GitHubModal({ isOpen, onClose, onFetchSuccess }: GitHubModalProps) {
@@ -35,7 +42,7 @@ export function GitHubModal({ isOpen, onClose, onFetchSuccess }: GitHubModalProp
         throw new Error(data.error || 'Failed to fetch PR');
       }
 
-      onFetchSuccess(data.diff);
+      onFetchSuccess(data.files || []);
       onClose();
       setUrl('');
     } catch (err: any) {

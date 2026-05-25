@@ -63,4 +63,5 @@ class AIEngine {
   }
 }
 
-export default new AIEngine();
+const aiEngine = new AIEngine();
+export default aiEngine;

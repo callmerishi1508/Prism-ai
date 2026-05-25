@@ -18,8 +18,9 @@ export async function POST(request: NextRequest) {
     const validPersonas: PersonaId[] = ['cto', 'security', 'performance', 'faang'];
     const selectedPersona = validPersonas.includes(persona as PersonaId) ? persona : 'cto';
 
-    // Create cache key based on inputs (do NOT include apiKey in cache key to avoid collisions/leaks)
-    const cacheKey = crypto.createHash('sha256').update(JSON.stringify({ validatedCode, selectedPersona, language, isDemoMode })).digest('hex');
+    // Create cache key based on inputs. We include the presence of customApiKey (boolean) but not the key itself.
+    const hasCustomKey = !!customApiKey;
+    const cacheKey = crypto.createHash('sha256').update(JSON.stringify({ validatedCode, selectedPersona, language, isDemoMode, hasCustomKey })).digest('hex');
     
     // Return cached response if available
     if (responseCache.has(cacheKey)) {

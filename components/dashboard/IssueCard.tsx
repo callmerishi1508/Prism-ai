@@ -24,17 +24,33 @@ export function IssueCard({ issue }: IssueCardProps) {
   const config = severityConfig[issue.severity as keyof typeof severityConfig] || severityConfig.Medium;
   const Icon = config.icon;
 
-  const handleCopy = () => {
+  const handleCopy = async () => {
     if (issue.suggested_fix) {
-      navigator.clipboard.writeText(issue.suggested_fix);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(issue.suggested_fix);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (e) {
+        console.error('Clipboard access denied', e);
+        alert('Clipboard access denied. Please manually copy the fix.');
+      }
     }
   };
 
   const getSanitizedHtml = (markdown: string) => {
     const html = marked.parse(markdown) as string;
-    return { __html: DOMPurify.sanitize(html) };
+    
+    DOMPurify.addHook('afterSanitizeAttributes', function(node) {
+      if ('target' in node) {
+        node.setAttribute('target', '_blank');
+        node.setAttribute('rel', 'noopener noreferrer');
+      }
+    });
+
+    const sanitized = DOMPurify.sanitize(html);
+    DOMPurify.removeHook('afterSanitizeAttributes');
+    
+    return { __html: sanitized };
   };
 
   return (

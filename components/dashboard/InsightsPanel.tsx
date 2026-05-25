@@ -258,11 +258,18 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 to-transparent pointer-events-none" />
           <div className="flex items-center justify-between relative z-10">
             <h3 className="text-sm font-semibold text-indigo-400 flex items-center gap-2">
-              <Network size={16} /> Enterprise RAG Pipeline Active
+              <Network size={16} /> 
+              {(analysis as any).ragTelemetry?.intentClassification 
+                ? `Intent Match: ${(analysis as any).ragTelemetry.intentClassification}`
+                : "Enterprise RAG Pipeline Active"}
             </h3>
             <span className="text-[10px] uppercase tracking-wider font-bold text-indigo-500/80 px-2 py-0.5 rounded border border-indigo-500/20 bg-indigo-500/10">Vector Search</span>
           </div>
-          <p className="text-xs text-gray-400 font-medium relative z-10">The AI successfully retrieved and applied the following company standards to this review:</p>
+          <p className="text-xs text-gray-400 font-medium relative z-10">
+            {(analysis as any).ragTelemetry?.intentClassification 
+              ? `The AI retrieved context specifically targeting the detected engineering intent with ${(analysis as any).ragTelemetry.retrievalIntentMatches || 0} direct matches.`
+              : "The AI successfully retrieved and applied the following company standards to this review:"}
+          </p>
           <div className="flex flex-col gap-3 mt-2 relative z-10">
             {(analysis as any).ragContext.map((doc: any) => (
               <div key={doc.id} className="p-3.5 rounded-lg bg-black/40 border border-indigo-500/20 text-xs flex flex-col gap-2 group hover:border-indigo-500/40 transition-colors">
@@ -321,6 +328,13 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
         {issues.length === 0 ? (
           <motion.div variants={itemVariants} className="flex flex-col items-center justify-center p-10 rounded-2xl border border-emerald-500/20 bg-emerald-500/5 backdrop-blur-xl relative overflow-hidden shadow-[0_0_40px_rgba(16,185,129,0.1)]">
             <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent pointer-events-none" />
+            
+            {(analysis as any).ragTelemetry?.mode?.includes('Offline') && (
+               <div className="absolute top-4 right-4 bg-yellow-500/20 border border-yellow-500/30 text-yellow-400 text-[10px] uppercase tracking-wider font-bold px-2 py-1 rounded-md">
+                 Mock Demo Analysis — Repair Pipeline Not Executed
+               </div>
+            )}
+            
             <div className="p-4 rounded-full bg-emerald-500/20 mb-4 animate-bounce">
               <PartyPopper className="w-10 h-10 text-emerald-400" />
             </div>
@@ -361,6 +375,46 @@ export function InsightsPanel({ analysis, isLoading, activePersona, error, laten
           </div>
         )}
       </div>
+
+      {/* Enterprise RAG Observability Footer */}
+      {analysis.ragTelemetry && (
+        <motion.div variants={itemVariants} className="mt-2 pt-4 border-t border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 bg-[#050505]/50 px-4 pb-4 rounded-b-2xl">
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full animate-pulse ${
+                analysis.ragTelemetry.mode === 'Pinecone Active' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' :
+                analysis.ragTelemetry.mode === 'Cached Retrieval' ? 'bg-sky-500 shadow-[0_0_8px_rgba(14,165,233,0.5)]' :
+                analysis.ragTelemetry.mode === 'Semantic Fallback' ? 'bg-yellow-500 shadow-[0_0_8px_rgba(234,179,8,0.5)]' :
+                'bg-gray-500 shadow-[0_0_8px_rgba(107,114,128,0.5)]'
+              }`} />
+              <span className="text-[10px] uppercase font-semibold tracking-wider text-gray-400">
+                {analysis.ragTelemetry.mode}
+              </span>
+            </div>
+            
+            <div className="h-3 w-px bg-white/10 hidden sm:block" />
+            
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-gray-500">
+              <Database size={12} className="opacity-70" />
+              <span>Retrieval: {analysis.ragTelemetry.retrievalLatencyMs ?? 0}ms</span>
+            </div>
+
+            <div className="h-3 w-px bg-white/10 hidden sm:block" />
+            
+            <div className="flex items-center gap-1.5 text-[11px] font-mono text-gray-500">
+              <FileLock size={12} className="opacity-70" />
+              <span>Retrieved: {analysis.ragTelemetry.retrievedContextCount ?? 0} standards{analysis.ragTelemetry.retrievedPolicyCount ? `, ${analysis.ragTelemetry.retrievedPolicyCount} policies` : ''}</span>
+            </div>
+          </div>
+          
+          {analysis.ragTelemetry.fallbackReason && (
+            <div className="flex items-center gap-1.5 px-2 py-1 rounded bg-white/[0.02] border border-white/5 text-[10px] font-mono text-gray-400 mt-2 md:mt-0 max-w-full truncate overflow-hidden">
+              <Network size={10} className="text-gray-500 shrink-0" />
+              <span className="truncate">{analysis.ragTelemetry.fallbackReason}</span>
+            </div>
+          )}
+        </motion.div>
+      )}
 
     </motion.div>
   );

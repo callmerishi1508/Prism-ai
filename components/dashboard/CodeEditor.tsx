@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import Editor from '@monaco-editor/react';
+import React, { useState, useRef, useEffect } from 'react';
+import Editor, { OnMount } from '@monaco-editor/react';
 import { motion } from 'framer-motion';
 import { Copy, Maximize, Minimize, Check } from 'lucide-react';
 
@@ -44,12 +44,54 @@ const SUPPORTED_LANGUAGES = [
   { id: 'xml', name: 'XML' },
   { id: 'markdown', name: 'Markdown' },
   { id: 'dockerfile', name: 'Dockerfile' },
-  { id: 'solidity', name: 'Solidity' }
+  { id: 'solidity', name: 'Solidity' },
+  { id: 'diff', name: 'Git Patch (Diff)' }
 ];
 
 export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeEditorProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const editorRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.getModel()?.dispose();
+        editorRef.current.dispose();
+      }
+    };
+  }, []);
+
+  const handleEditorDidMount: OnMount = (editor, monaco) => {
+    editorRef.current = editor;
+    
+    if (!monaco.languages.getLanguages().some((l: any) => l.id === 'diff')) {
+      monaco.languages.register({ id: 'diff' });
+      monaco.languages.setMonarchTokensProvider('diff', {
+        tokenizer: {
+          root: [
+            [/^\+.*$/, 'diff-add'],
+            [/^\-.*$/, 'diff-del'],
+            [/^@@.*$/, 'diff-hunk'],
+            [/^---.*$/, 'diff-file'],
+            [/^\+\+\+.*$/, 'diff-file'],
+          ]
+        }
+      });
+      monaco.editor.defineTheme('vs-dark-diff', {
+        base: 'vs-dark',
+        inherit: true,
+        rules: [
+          { token: 'diff-add', foreground: '2ecc71' },
+          { token: 'diff-del', foreground: 'e74c3c' },
+          { token: 'diff-hunk', foreground: '3498db' },
+          { token: 'diff-file', foreground: '9b59b6', fontStyle: 'bold' }
+        ],
+        colors: {}
+      });
+    }
+  };
+
   const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const newLang = e.target.value;
     if (onLanguageChange) {
@@ -57,10 +99,15 @@ export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeE
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error('Clipboard access denied', e);
+      alert('Clipboard access denied. Please manually copy the code.');
+    }
   };
 
   const handleEditorChange = (value: string | undefined) => {
@@ -118,9 +165,10 @@ export function CodeEditor({ code, language, onChange, onLanguageChange }: CodeE
         <Editor
           height="100%"
           language={language}
-          theme="vs-dark"
+          theme={language === 'diff' ? 'vs-dark-diff' : 'vs-dark'}
           value={code}
           onChange={handleEditorChange}
+          onMount={handleEditorDidMount}
           options={{
             minimap: { enabled: false },
             fontSize: 14,

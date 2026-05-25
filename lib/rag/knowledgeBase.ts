@@ -6,6 +6,8 @@ export interface RagDocument {
   category: string;
   author: string;
   lastUpdated: string;
+  intentTags: string[];
+  metadata?: any;
 }
 
 export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
@@ -16,7 +18,9 @@ export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
     keywords: ['password', 'auth', 'login', 'token', 'hash', 'bcrypt', 'security', 'session'],
     category: 'Security Policy',
     author: 'InfoSec Team',
-    lastUpdated: '2025-11-04'
+    lastUpdated: '2025-11-04',
+    intentTags: ['AUTH_BYPASS', 'SQL_INJECTION'],
+    metadata: { domain: 'SECURITY_ENGINEERING' }
   },
   {
     id: 'DB-01',
@@ -25,7 +29,20 @@ export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
     keywords: ['sql', 'query', 'select', 'database', 'db.execute', 'injection', 'orm', 'mysql', 'postgres'],
     category: 'Architecture Standard',
     author: 'Data Engineering',
-    lastUpdated: '2026-01-12'
+    lastUpdated: '2026-01-12',
+    intentTags: ['SQL_INJECTION'],
+    metadata: { domain: 'DATABASE_LAYER' }
+  },
+  {
+    id: 'DB-PERF-01',
+    title: 'N+1 Query Prevention',
+    content: 'Never execute database queries inside a loop (e.g., map, forEach, while). This creates an N+1 query bottleneck that severely degrades performance and database connection pools. Always use batch loading (e.g., DataLoader) or write a single SQL query using the IN operator to fetch associated records in one round trip.',
+    keywords: ['loop', 'query', 'n+1', 'batch', 'dataloader', 'performance', 'database', 'select in'],
+    category: 'Performance Guideline',
+    author: 'Data Engineering',
+    lastUpdated: '2026-03-10',
+    intentTags: ['N_PLUS_ONE', 'OVERFETCHING'],
+    metadata: { domain: 'DATABASE_LAYER' }
   },
   {
     id: 'PERF-01',
@@ -34,7 +51,9 @@ export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
     keywords: ['loop', 'for', 'while', 'array', 'filter', 'find', 'complexity', 'o(n^2)', 'nested'],
     category: 'Performance Guideline',
     author: 'Core Platform Team',
-    lastUpdated: '2025-08-22'
+    lastUpdated: '2025-08-22',
+    intentTags: ['UNBOUNDED_LOOP'],
+    metadata: { domain: 'SYSTEMS_PROGRAMMING' }
   },
   {
     id: 'PY-01',
@@ -43,15 +62,30 @@ export const COMPANY_KNOWLEDGE_BASE: RagDocument[] = [
     keywords: ['python', 'fastapi', 'request.json', 'pydantic', 'validation', 'schema', 'type', 'def'],
     category: 'Backend Guideline',
     author: 'Backend Guild',
-    lastUpdated: '2026-02-10'
+    lastUpdated: '2026-02-10',
+    intentTags: ['MISSING_VALIDATION'],
+    metadata: { domain: 'BACKEND_API', framework: 'fastapi' }
+  },
+  {
+    id: 'CPP-01',
+    title: 'C++ Memory Safety & IO',
+    content: 'Avoid raw pointers and manual memory management (new/delete). Use smart pointers (std::unique_ptr, std::shared_ptr) to prevent memory leaks. Do not use std::endl in tight loops as it flushes the buffer unnecessarily; use \\n instead.',
+    keywords: ['c++', 'cpp', 'pointer', 'memory', 'leak', 'new', 'delete', 'std::endl', 'std::cout'],
+    category: 'Systems Guideline',
+    author: 'C++ Working Group',
+    lastUpdated: '2025-09-15',
+    intentTags: ['MEMORY_LEAK', 'RESOURCE_LEAK'],
+    metadata: { domain: 'SYSTEMS_PROGRAMMING' }
   },
   {
     id: 'REACT-01',
-    title: 'React Async & State Management',
-    content: 'All asynchronous operations inside useEffect hooks must include proper try/catch error handling and cleanup functions to avoid memory leaks. Loading states must be properly handled to prevent null reference errors before data is fetched.',
-    keywords: ['react', 'useeffect', 'usestate', 'component', 'mount', 'hook'],
-    category: 'Frontend Standard',
-    author: 'Frontend Guild',
-    lastUpdated: '2025-10-05'
+    title: 'React Effects & State Integrity',
+    content: 'Never mutate state directly. Always use the setter function provided by useState. When using useEffect, ensure all dependencies are correctly listed in the dependency array to prevent stale closures. Cleanup functions must be returned if the effect subscribes to external events or sets up intervals.',
+    keywords: ['react', 'useeffect', 'usestate', 'state', 'hook', 'dependency', 'mutate'],
+    category: 'Frontend Guideline',
+    author: 'Frontend Core',
+    lastUpdated: '2026-03-01',
+    intentTags: ['INEFFICIENT_RENDER'],
+    metadata: { domain: 'FRONTEND_UI', framework: 'react' }
   }
 ];

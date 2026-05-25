@@ -1,0 +1,16 @@
+{
+  "inputHash": "d3f6070ed5af8fb4c12084011f650800383417dc2fda6a5d63b9b70b06661744",
+  "detectedDomain": "MACHINE_LEARNING",
+  "detectedIntent": "SQL_INJECTION",
+  "retrievedDocs": [
+    "SEC-01",
+    "DB-01",
+    "DB-PERF-01"
+  ],
+  "rankingScores": [
+    28,
+    28,
+    -7.5
+  ],
+  "latencyMs": 2
+}

@@ -1,7 +1,7 @@
 'use client';
 
-import React from 'react';
-import { DiffEditor } from '@monaco-editor/react';
+import React, { useRef, useEffect } from 'react';
+import { DiffEditor, DiffOnMount } from '@monaco-editor/react';
 import { motion } from 'framer-motion';
 
 interface DiffViewerProps {
@@ -11,6 +11,22 @@ interface DiffViewerProps {
 }
 
 export function DiffViewer({ originalCode, updatedCode, language }: DiffViewerProps) {
+  const editorRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.getOriginalEditor()?.getModel()?.dispose();
+        editorRef.current.getModifiedEditor()?.getModel()?.dispose();
+        editorRef.current.dispose();
+      }
+    };
+  }, []);
+
+  const handleEditorDidMount: DiffOnMount = (editor) => {
+    editorRef.current = editor;
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -42,6 +58,7 @@ export function DiffViewer({ originalCode, updatedCode, language }: DiffViewerPr
           height="100%"
           language={language}
           theme="vs-dark"
+          onMount={handleEditorDidMount}
           original={originalCode}
           modified={updatedCode}
           options={{

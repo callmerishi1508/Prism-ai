@@ -17,9 +17,13 @@ export function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('prism_custom_api_key');
-      if (stored) {
-        setSavedKey(stored);
+      try {
+        const stored = localStorage.getItem('prism_custom_api_key');
+        if (stored) {
+          setSavedKey(stored);
+        }
+      } catch (e) {
+        console.warn('localStorage access denied', e);
       }
     }
   }, [isOpen]);
@@ -31,7 +35,11 @@ export function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
 
   const handleSave = (keyToSave: string) => {
     if (!keyToSave.trim()) return;
-    localStorage.setItem('prism_custom_api_key', keyToSave.trim());
+    try {
+      localStorage.setItem('prism_custom_api_key', keyToSave.trim());
+    } catch (e) {
+      console.warn('localStorage access denied', e);
+    }
     setSavedKey(keyToSave.trim());
     setInputValue('');
     setStatus('success');
@@ -41,7 +49,11 @@ export function ApiKeyModal({ isOpen, onClose }: ApiKeyModalProps) {
   };
 
   const handleClear = () => {
-    localStorage.removeItem('prism_custom_api_key');
+    try {
+      localStorage.removeItem('prism_custom_api_key');
+    } catch (e) {
+      console.warn('localStorage access denied', e);
+    }
     setSavedKey(null);
     setInputValue('');
     setStatus('idle');

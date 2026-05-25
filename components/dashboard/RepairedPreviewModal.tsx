@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DiffEditor } from '@monaco-editor/react';
+import { DiffEditor, OnMount, DiffOnMount } from '@monaco-editor/react';
 import { X, Copy, Check, Download, AlertTriangle, ShieldCheck, Zap } from 'lucide-react';
+import { stripDiffArtifacts } from '@/lib/rag/sanitizer';
 
 interface RepairedPreviewModalProps {
   isOpen: boolean;
@@ -19,6 +20,7 @@ interface RepairedPreviewModalProps {
   onRegenerateAlternative?: () => void;
   isRepairing?: boolean;
   repairProgress?: string;
+  reconstructedOriginalCode?: string;
 }
 
 export function RepairedPreviewModal({
@@ -34,20 +36,43 @@ export function RepairedPreviewModal({
   onApplyChanges,
   onRegenerateAlternative,
   isRepairing,
-  repairProgress
+  repairProgress,
+  reconstructedOriginalCode
 }: RepairedPreviewModalProps) {
   const [copied, setCopied] = useState(false);
+  const editorRef = useRef<any>(null);
+
+  useEffect(() => {
+    return () => {
+      if (editorRef.current) {
+        editorRef.current.getOriginalEditor()?.getModel()?.dispose();
+        editorRef.current.getModifiedEditor()?.getModel()?.dispose();
+        editorRef.current.dispose();
+      }
+    };
+  }, []);
+
+  const handleEditorDidMount: DiffOnMount = (editor) => {
+    editorRef.current = editor;
+  };
 
   if (!isOpen) return null;
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(repairedCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const handleCopy = async () => {
+    try {
+      const cleanCode = stripDiffArtifacts(repairedCode, true);
+      await navigator.clipboard.writeText(cleanCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (e) {
+      console.error('Clipboard access denied', e);
+      alert('Clipboard access denied. Please manually copy the code.');
+    }
   };
 
   const handleExport = () => {
-    const blob = new Blob([repairedCode], { type: 'text/plain' });
+    const cleanCode = stripDiffArtifacts(repairedCode, true);
+    const blob = new Blob([cleanCode], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -146,10 +171,11 @@ export function RepairedPreviewModal({
           <div className="flex-1 bg-[#1E1E1E] relative">
             <DiffEditor
               height="100%"
-              original={originalCode}
-              modified={repairedCode}
+              original={stripDiffArtifacts(reconstructedOriginalCode || originalCode, true)}
+              modified={stripDiffArtifacts(repairedCode, true)}
               language={language === 'vue' || language === 'react' ? 'javascript' : language}
               theme="vs-dark"
+              onMount={handleEditorDidMount}
               options={{
                 readOnly: true,
                 renderSideBySide: true,

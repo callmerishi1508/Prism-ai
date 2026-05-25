@@ -1,0 +1,16 @@
+{
+  "inputHash": "fd07a78e016d53ef3c5685b95c18e9bc0d9f860c48e7d9b2d3e9e69a1a226c88",
+  "detectedDomain": "DATABASE_LAYER",
+  "detectedIntent": "SQL_INJECTION",
+  "retrievedDocs": [
+    "DB-01",
+    "SEC-01",
+    "DB-PERF-01"
+  ],
+  "rankingScores": [
+    30,
+    28,
+    -10
+  ],
+  "latencyMs": 0
+}

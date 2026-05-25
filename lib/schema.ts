@@ -16,6 +16,31 @@ export const ConfidenceMetricsSchema = z.object({
   manual_review_recommended: z.boolean().optional().describe('True if a human expert must verify this')
 });
 
+export const RagTelemetrySchema = z.object({
+  mode: z.string(),
+  embeddingSource: z.string(),
+  retrievalLatencyMs: z.number().optional(),
+  retrievedContextCount: z.number().optional(),
+  retrievedPolicyCount: z.number().optional(),
+  fallbackReason: z.string().optional(),
+  pineconeQuery: z.string().optional(),
+  
+  // Advanced Semantic Routing
+  semanticMatchConfidence: z.number().optional(),
+  domainConfidence: z.number().optional(),
+  frameworkConfidence: z.number().optional(),
+  retrievalReason: z.string().optional(),
+  rejectedDomains: z.array(z.string()).optional(),
+  blockedStandards: z.number().optional(),
+  fallbackRoutingTier: z.string().optional(),
+  framework: z.string().nullable().optional(),
+  
+  // Intent-Aware Retrieval
+  intentClassification: z.string().optional(),
+  retrievalIntentMatches: z.number().optional(),
+  intentConfidence: z.number().optional()
+});
+
 export const AnalysisResultSchema = z.object({
   issues: z.array(IssueSchema).describe('List of discovered issues'),
   health_score: z.number().min(0).max(100).optional().describe('Overall codebase health score (0 to 100)'),
@@ -26,7 +51,8 @@ export const AnalysisResultSchema = z.object({
     id: z.string(),
     title: z.string(),
     content: z.string()
-  })).optional().describe('Retrieved documentation or context used for analysis')
+  })).optional().describe('Retrieved documentation or context used for analysis'),
+  ragTelemetry: RagTelemetrySchema.optional().describe('Observability metrics for RAG pipeline')
 });
 
 export const FixResultSchema = z.object({
@@ -39,7 +65,8 @@ export const RepairedVersionSchema = z.object({
   summary: z.array(z.string()).describe('A concise list of architectural and security changes applied.'),
   riskLevel: z.enum(['Low', 'Moderate', 'High']).describe('The estimated risk level of applying this refactor.'),
   linesModified: z.number().describe('The total number of lines modified or touched.'),
-  vulnerabilitiesResolved: z.number().describe('The total number of vulnerabilities and issues successfully resolved.')
+  vulnerabilitiesResolved: z.number().describe('The total number of vulnerabilities and issues successfully resolved.'),
+  reconstructedOriginalCode: z.string().optional().describe('The reconstructed original codebase string.')
 });
 
 export type Issue = z.infer<typeof IssueSchema>;
@@ -47,3 +74,4 @@ export type AnalysisResult = z.infer<typeof AnalysisResultSchema>;
 export type FixResult = z.infer<typeof FixResultSchema>;
 export type RepairedVersionResult = z.infer<typeof RepairedVersionSchema>;
 export type ConfidenceMetrics = z.infer<typeof ConfidenceMetricsSchema>;
+export type RagTelemetry = z.infer<typeof RagTelemetrySchema>;

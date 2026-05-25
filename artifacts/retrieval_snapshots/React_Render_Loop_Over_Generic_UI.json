@@ -1,0 +1,12 @@
+{
+  "inputHash": "76be3c8a2d9bbafd56bb338375b2a29ce6ae104c8df4affe6bf335ce08bb2dcf",
+  "detectedDomain": "FRONTEND_UI",
+  "detectedIntent": "INEFFICIENT_RENDER",
+  "retrievedDocs": [
+    "REACT-01"
+  ],
+  "rankingScores": [
+    40
+  ],
+  "latencyMs": 0
+}
