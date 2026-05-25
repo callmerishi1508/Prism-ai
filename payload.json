@@ -1,0 +1,7 @@
+{
+  "code": "print(hello)",
+  "issues": [],
+  "persona": "Security Expert",
+  "language": "python",
+  "isAlternative": false
+}

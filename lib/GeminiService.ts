@@ -1156,8 +1156,8 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
         } catch (flashErr: any) {
           console.error('[Gemini Fallback] Flash repair also failed:', flashErr);
           return {
-            repairedCode: stripDiffArtifacts(repairTargetCode, isPatchTarget) + '\n// PRISM AI: Autonomous repair temporarily unavailable due to extreme load. Please try again.',
-            summary: ['Service temporarily degraded', 'Fallback mechanism engaged'],
+            repairedCode: stripDiffArtifacts(repairTargetCode, isPatchTarget) + '\n// PRISM AI: Autonomous repair temporarily unavailable due to API rate limits (Extreme Load). Please try again in 1 minute.',
+            summary: ['API Rate Limit Exceeded', 'Offline Fallback Engaged'],
             riskLevel: 'Low',
             linesModified: 0,
             vulnerabilitiesResolved: 0,
@@ -1167,8 +1167,8 @@ The "riskLevel" should be "Low", "Moderate", or "High" based on the architectura
       }
 
       // Final Resilience: Return a safe default or heuristic repair instead of failing
-      let repaired = repairTargetCode + '\n// PRISM AI: Autonomous repair temporarily unavailable due to extreme load. Please try again.';
-      let summaryText = ['Service temporarily degraded', 'Fallback mechanism engaged'];
+      let repaired = repairTargetCode + '\n// PRISM AI: Autonomous repair temporarily unavailable due to API rate limits (Extreme Load). Please try again in 1 minute.';
+      let summaryText = ['API Rate Limit Exceeded', 'Offline Fallback Engaged'];
 
       const lang = context.language?.toLowerCase() || '';
       if ((lang === 'cpp' || lang === 'c++') && repairTargetCode.toLowerCase().includes('print(') && !repairTargetCode.toLowerCase().includes('printf(')) {
